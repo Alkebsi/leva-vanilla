@@ -1,14 +1,31 @@
 {
   "name": "leva-vanilla",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:types": "tsc -p tsconfig.build.json",
     "preview": "vite preview"
   },
+  "main": "dist/leva-vanilla.cjs",
+  "module": "dist/leva-vanilla.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+  "dist",
+  "README.md",
+  "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/leva-vanilla.js",
+      "require": "./dist/leva-vanilla.cjs"
+    }
+  },
   "devDependencies": {
+    "@types/three": "^0.182.0",
+    "three": "0.182.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.4"
   }

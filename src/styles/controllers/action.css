@@ -1,0 +1,15 @@
+.leva__row--button {
+  grid-template-columns: none;
+  column-gap: none;
+}
+
+.leva__input--button {
+  color: var(--leva-colors-highlight3);
+  background-color: var(--leva-colors-accent2);
+  cursor: pointer;
+}
+
+.leva__input--button:hover {
+  box-shadow: inset 0 0 0 var(--leva-borderWidths-hover)
+    var(--leva-colors-accent3);
+}

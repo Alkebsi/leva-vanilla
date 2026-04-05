@@ -1,0 +1,26 @@
+.leva__base {
+  --leva--titleBarHeight: var(--leva-sizes-titleBarHeight);
+  display: block;
+  box-sizing: border-box;
+  font-family: var(--leva-fonts-mono);
+  font-size: var(--leva-fontSizes-root);
+  color: var(--leva-colors-rootText);
+  background-color: var(--leva-colors-elevation1);
+}
+
+.leva__base--flat-false {
+  border-radius: var(--leva-radii-lg);
+  box-shadow: var(--leva-shadows-level1);
+}
+
+.leva__base--fill-false {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  width: var(--leva-sizes-rootWidth);
+}
+
+.leva__base * {
+  box-sizing: border-box;
+}

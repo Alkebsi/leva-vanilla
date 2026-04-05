@@ -1,0 +1,101 @@
+.leva__content-container {
+  position: relative;
+  background-color: var(--leva-colors-elevation2);
+  border-radius: var(--leva-radii-lg);
+  overflow: auto;
+  max-height: calc(100vh - 20px - var(--leva--titleBarHeight));
+  transition: height 300ms;
+}
+
+.leva__content {
+  position: relative;
+  display: grid;
+  grid-template-columns: 100%;
+  row-gap: var(--leva-space-rowGap);
+  opacity: 1;
+  transition: opacity 250ms;
+}
+
+.leva__row-container {
+  padding-left: var(--leva-space-md);
+  padding-right: var(--leva-space-md);
+  opacity: 1;
+}
+
+.leva__row-container:first-of-type {
+  padding-top: var(--leva-space-md);
+}
+
+.leva__row-container:last-of-type {
+  padding-bottom: var(--leva-space-md);
+}
+
+.leva__row {
+  position: relative;
+  display: grid;
+  z-index: 100;
+  row-gap: var(--leva-space-rowGap);
+  grid-template-rows: minmax(var(--leva-sizes-rowHeight), max-content);
+  align-items: center;
+  grid-template-columns: auto var(--leva-sizes-controlWidth);
+  column-gap: var(--leva-space-colGap);
+  color: var(--leva-colors-highlight2);
+}
+
+.leva__label-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.leva__label {
+  font-weight: var(--leva-fontWeights-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leva__control {
+  display: flex;
+  align-items: center;
+  position: relative;
+  border-radius: var(--leva-radii-sm);
+  overflow: hidden;
+  color: inherit;
+  height: var(--leva-sizes-rowHeight);
+  background-color: var(--leva-colors-elevation3);
+}
+
+.leva__input {
+  appearance: none;
+  outline: none;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  font-family: inherit;
+  border: none;
+  background-color: transparent;
+  padding: 0 var(--leva-space-sm);
+  width: 0px;
+  min-width: 0px;
+  flex: 1 1 0%;
+  height: 100%;
+  overflow-clip-margin: 0px !important;
+  overflow: clip !important;
+}
+
+.leva__input::selection {
+  background-color: var(--leva-colors-accent2);
+}
+
+.leva__control:hover {
+  box-shadow: inset 0 0 0 var(--leva-borderWidths-hover)
+    var(--leva-colors-accent1);
+}
+
+.leva__control:focus-within {
+  box-shadow: inset 0 0 0 var(--leva-borderWidths-hover)
+    var(--leva-colors-accent2);
+}

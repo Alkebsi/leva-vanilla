@@ -1,0 +1,29 @@
+.leva__control--color-parent {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--leva-sizes-rowHeight) auto;
+  column-gap: var(--leva-space-colGap);
+  align-items: center;
+  background: transparent;
+}
+
+.leva__control--color-parent:hover,
+.leva__control--color-parent:focus-within {
+  box-shadow: none;
+}
+
+.leva__input--fake-color {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border-radius: var(--leva-radii-sm);
+  cursor: pointer;
+}
+
+.leva__input--color-picker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}

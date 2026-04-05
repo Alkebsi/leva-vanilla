@@ -1,0 +1,33 @@
+.leva__header {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  height: var(--leva-sizes-titleBarHeight);
+}
+
+.leva__header--mode-grab {
+  cursor: grab;
+}
+
+.leva__icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.leva__icons > svg > * {
+  fill: var(--leva-colors-highlight1);
+  transition: fill 250ms;
+}
+
+.leva__icons:hover > svg > * {
+  fill: var(--leva-colors-highlight3);
+}
+
+.leva__icons--grab-icon {
+  cursor: grab;
+  flex: 1 1 0%;
+}

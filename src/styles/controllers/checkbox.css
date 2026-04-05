@@ -1,0 +1,45 @@
+.leva__input--checkbox {
+  display: none;
+}
+
+.leva__control--checkbox-parent {
+  background: transparent;
+}
+
+.leva__control--checkbox-parent:hover,
+.leva__control--checkbox-parent:focus-within {
+  box-shadow: none;
+}
+
+.leva__input--checkbox-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  height: var(--leva-sizes-checkboxSize);
+  width: var(--leva-sizes-checkboxSize);
+  background-color: var(--leva-colors-elevation3);
+  border-radius: var(--leva-radii-sm);
+}
+
+.leva__input--checkbox-label:hover {
+  box-shadow: inset 0 0 0 var(--leva-borderWidths-hover)
+    var(--leva-colors-accent1);
+}
+
+.leva__input--checkbox-label > svg {
+  display: none;
+  width: 90%;
+  height: 90%;
+  stroke: var(--leva-colors-highlight3);
+}
+
+.leva__input--checkbox:checked + .leva__input--checkbox-label > svg {
+  display: block;
+}
+
+.leva__input--checkbox:checked + .leva__input--checkbox-label {
+  background-color: var(--leva-colors-accent2);
+}
