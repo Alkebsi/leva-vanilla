@@ -4,7 +4,8 @@ import { internalsOf } from '../../utils/types';
 
 export default class Slider<O extends object, K extends keyof O> {
   constructor(container: HTMLElement, controller: NumericController<O, K>) {
-    const isSlider = controller.minValue !== undefined && controller.maxValue !== undefined;
+    const isSlider =
+      controller.minValue !== undefined && controller.maxValue !== undefined;
 
     const input = document.createElement('input');
     input.className = 'leva__input';
@@ -13,9 +14,9 @@ export default class Slider<O extends object, K extends keyof O> {
     input.autocomplete = 'off';
     input.spellcheck = false;
 
-  const internals = internalsOf(controller);
-  input.name = String(internals.key);
-  input.id = String(internals.key);
+    const internals = internalsOf(controller);
+    input.name = String(internals.key);
+    input.id = String(internals.key);
 
     const sync = () => {
       input.type = 'number';

@@ -2,7 +2,7 @@ import Controller from './Controller';
 
 export default class NumericController<
   O extends object,
-  K extends keyof O
+  K extends keyof O,
 > extends Controller<O, K> {
   minValue?: number;
   maxValue?: number;

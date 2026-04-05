@@ -10,7 +10,7 @@ import {
 
 export default class ColorController<
   O extends object,
-  K extends keyof O
+  K extends keyof O,
 > extends Controller<O, K> {
   normalized: NormalizedRGB;
 

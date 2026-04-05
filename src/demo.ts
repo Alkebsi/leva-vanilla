@@ -9,7 +9,6 @@ import {
 } from 'three';
 import GUI from './dom/GUI';
 
-let time = 0;
 const data = {
   foo: 0,
   bar: 0,
@@ -116,7 +115,6 @@ const changeScale = (value: typeof data.cubeSize) => {
 changeScale(data.cubeSize);
 
 const anim = () => {
-  time += 0.03;
   // data.foo = Math.sin(time);
 
   // gui.update();

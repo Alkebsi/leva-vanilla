@@ -35,8 +35,8 @@
   --leva-space-colGap: 7px;
 
   /* Fonts */
-  --leva-fonts-mono: ui-monospace, SFMono-Regular, Menlo, 'Roboto Mono',
-    monospace;
+  --leva-fonts-mono:
+    ui-monospace, SFMono-Regular, Menlo, 'Roboto Mono', monospace;
   --leva-fonts-sans: system-ui, sans-serif;
   --leva-fontSizes-root: 11px;
   --leva-fontSizes-toolTip: var(--leva-fontSizes-root);

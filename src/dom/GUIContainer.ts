@@ -11,9 +11,11 @@ import ColorController from '../core/ColorController';
 import type { KeysOfType, ActionKeys } from '../utils/types';
 import type { ColorValue } from '../utils/color';
 
+type BaseController = { refresh: () => void; destroy: () => void };
+
 export default class GUIContainer {
   protected container: HTMLElement;
-  protected controllers: any[] = [];
+  protected controllers: BaseController[] = [];
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -24,11 +26,11 @@ export default class GUIContainer {
     key: K
   ): O[K] extends string
     ? ValueController<O, K>
-    : O[K] extends (...args: any[]) => any
-    ? ActionController<O, Extract<K, ActionKeys<O>>>
-    : O[K] extends number
-    ? NumericController<O, K>
-    : Controller<O, K>;
+    : O[K] extends (...args: unknown[]) => unknown
+      ? ActionController<O, Extract<K, ActionKeys<O>>>
+      : O[K] extends number
+        ? NumericController<O, K>
+        : Controller<O, K>;
 
   add<O extends object, K extends keyof O>(
     object: O,
@@ -61,7 +63,7 @@ export default class GUIContainer {
     }
 
     switch (typeof value) {
-      case 'number':
+      case 'number': {
         const numericControl = new NumericController(object, key);
 
         numericControl.minValue = arg1;
@@ -71,29 +73,26 @@ export default class GUIContainer {
         new Slider(this.container, numericControl);
         this.controllers.push(numericControl);
         return numericControl;
-      case 'boolean':
+      }
+      case 'boolean': {
         const checkControl = new BooleanController(object, key);
         new Checkbox(this.container, checkControl);
         this.controllers.push(checkControl);
         return checkControl;
-      case 'string':
+      }
+      case 'string': {
         const textControl = new ValueController(object, key);
         new Text(this.container, textControl);
         this.controllers.push(textControl);
         return textControl;
+      }
 
-      case 'function':
+      case 'function': {
         const actionControl = new ActionController(object, key);
         this.controllers.push(actionControl);
         new Action(this.container, actionControl);
         return actionControl;
-      // const functionControl = new Action(
-      //   this.container,
-      //   object,
-      //   key as Extract<K, ActionKeys<O>>
-      // );
-      // this.controllers.push(functionControl);
-      // return functionControl;
+      }
       default:
         throw new Error(`failed to add ${value} from ${object}.`);
     }

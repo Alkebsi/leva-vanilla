@@ -6,7 +6,7 @@ export type KeysOfType<T, V> = {
 }[keyof T];
 
 // Keys of T whose value type is a function (action-like keys)
-export type ActionKeys<T> = KeysOfType<T, (...args: any[]) => any>;
+export type ActionKeys<T> = KeysOfType<T, (...args: unknown[]) => unknown>;
 
 export interface ControllerInternals<O extends object, K extends keyof O> {
   onOptionsChange(fn: () => void): void;

@@ -4,7 +4,7 @@ export type SelectOptions<V> = readonly V[] | Record<string, V>;
 
 export default class SelectController<
   O extends object,
-  K extends keyof O
+  K extends keyof O,
 > extends Controller<O, K> {
   options?: SelectOptions<O[K]>;
 

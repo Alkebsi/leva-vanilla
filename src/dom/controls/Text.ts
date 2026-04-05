@@ -17,7 +17,7 @@ export default class Text<O extends object, K extends keyof O> {
     };
 
     const row = new Row(container, controller);
-    const internals = internalsOf(controller)
+    const internals = internalsOf(controller);
     input.name = String(internals.key);
     input.id = String(internals.key);
 
