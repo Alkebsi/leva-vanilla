@@ -27,12 +27,18 @@
 }
 
 .leva__slider {
+  --percent: 0%;
+  --raw-x: 0;
   position: relative;
   display: flex;
   align-items: center;
   height: 100%;
   cursor: pointer;
   touch-action: none;
+}
+
+.leva__slider:active {
+  cursor: ew-resize;
 }
 
 .leva__slider--track {
@@ -45,14 +51,14 @@
 
 .leva__slider--progress {
   left: 0px;
-  right: 80%;
+  right: calc(100% - var(--percent));
   position: absolute;
   height: 100%;
   background-color: var(--leva-colors-accent2);
 }
 
 .leva__slider--thumb {
-  left: calc(20% - 1.6px);
+  left: calc(var(--percent) - (var(--raw-x) * 8px));
   position: absolute;
   width: var(--leva-sizes-scrubberWidth);
   height: var(--leva-sizes-scrubberHeight);
@@ -60,4 +66,5 @@
   box-shadow: 0 0 0 2px var(--leva-colors-elevation2);
   background-color: var(--leva-colors-accent2);
   cursor: pointer;
+  will-change: left;
 }
