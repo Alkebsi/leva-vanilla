@@ -27,6 +27,8 @@
 }
 
 .leva__slider {
+  -webkit-user-drag: none;
+  user-select: none;
   --percent: 0%;
   --raw-x: 0;
   position: relative;
@@ -58,6 +60,8 @@
 }
 
 .leva__slider--thumb {
+  -webkit-user-drag: none;
+  user-select: none;
   left: calc(var(--percent) - (var(--raw-x) * 8px));
   position: absolute;
   width: var(--leva-sizes-scrubberWidth);
@@ -67,4 +71,28 @@
   background-color: var(--leva-colors-accent2);
   cursor: pointer;
   will-change: left;
+}
+
+.leva__number--stepper {
+  -webkit-user-drag: none;
+  user-select: none;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0 var(--leva-space-xs);
+  font-size: 0.8em;
+  touch-action: none;
+  cursor: ew-resize;
+  margin-right: calc(var(--leva-space-xs) * -1);
+  text-transform: uppercase;
+  opacity: 0.3;
+}
+
+.leva__number--stepper:hover {
+  opacity: 1;
+}
+.leva__number--stepper-dragging {
+  background-color: var(--leva-colors-accent2);
 }

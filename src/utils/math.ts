@@ -25,3 +25,19 @@ export const displayDecimals = (v: number, s: number) => {
   if (s > 0 && s < 1 && stepDecimals === 1) return 1;
   return v < 0 ? 1 : 2;
 };
+
+/**
+ * Round a value to the nearest multiple of `step` and trim to the
+ * step's significant decimal places to avoid floating-point artifacts.
+ */
+export const roundToStep = (value: number, step: number) => {
+  if (!isFinite(value) || !isFinite(step) || step === 0) return value;
+  const rounded = Math.round(value / step) * step;
+  const dec = decimalsForStep(step);
+  return Number(rounded.toFixed(dec));
+};
+
+/**
+ * Return an explicit step value, defaulting to 0.01 when undefined.
+ */
+export const getStep = (s?: number) => (s === undefined ? 0.01 : s);
