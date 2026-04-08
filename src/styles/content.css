@@ -2,7 +2,7 @@
   position: relative;
   background-color: var(--leva-colors-elevation2);
   border-radius: var(--leva-radii-lg);
-  overflow: auto;
+  overflow: hidden;
   max-height: calc(100vh - 20px - var(--leva--titleBarHeight));
   transition: height 300ms;
 }

@@ -31,3 +31,7 @@
   cursor: grab;
   flex: 1 1 0%;
 }
+
+.leva__icons--dropdown-icon > svg {
+  transition: transform 350ms;
+}

@@ -16,6 +16,7 @@ type BaseController = { refresh: () => void; destroy: () => void };
 export default class GUIContainer {
   protected container: HTMLElement;
   protected controllers: BaseController[] = [];
+  protected isOpen = true;
 
   constructor(container: HTMLElement) {
     this.container = container;

@@ -12,7 +12,7 @@ import GUI from './dom/GUI';
 const data = {
   foo: 0,
   bar: 0,
-  color: '#ff005b',
+  color: '#1f1f1f',
   textTest: 'some text to test',
   enabled: true,
   cubeSize: 'medium',
