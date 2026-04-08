@@ -10,9 +10,11 @@ export default class GUI extends GUIContainer {
   private _contentContainer = document.createElement('div');
   private _containerClientHeight = 0;
 
-  private _dropdown = document.createElement('div');
+  private _dropdownBtn = document.createElement('div');
   private _grabIcon = document.createElement('div');
-  private _searchIcon = document.createElement('div');
+  private _searchBtn = document.createElement('div');
+  private _search = document.createElement('div');
+  private _isSearchOpen = false;
 
   constructor(parent: HTMLElement = document.body) {
     const root = document.createElement('div');
@@ -46,10 +48,16 @@ export default class GUI extends GUIContainer {
   }
 
   private _createSearchBar() {
-    const search = document.createElement('div');
-    search.className = 'leva__search';
+    this._search.className = 'leva__search';
 
-    this.leva.appendChild(search);
+    const input = document.createElement('input');
+    input.name = 'leva__search-input';
+    input.id = 'leva__search-input';
+    input.placeholder = '[Open filter with CMD+SHIFT+L]';
+
+    this._search.append(input);
+
+    this.leva.appendChild(this._search);
   }
 
   private _createHeader() {
@@ -58,11 +66,11 @@ export default class GUI extends GUIContainer {
     header.classList.add('leva__header--mode-grab'); // TODO: manage modes later
 
     // Dropdown
-    this._dropdown.className = 'leva__icons';
-    this._dropdown.classList.add('leva__icons--dropdown-icon');
-    this._dropdown.classList.add('leva__icons--active-true');
-    this._dropdown.innerHTML = icons.downArrow;
-    header.appendChild(this._dropdown);
+    this._dropdownBtn.className = 'leva__icons';
+    this._dropdownBtn.classList.add('leva__icons--dropdown-icon');
+    this._dropdownBtn.classList.add('leva__icons--active-true');
+    this._dropdownBtn.innerHTML = icons.downArrow;
+    header.appendChild(this._dropdownBtn);
 
     // Grab
     this._grabIcon.className = 'leva__icons';
@@ -72,11 +80,11 @@ export default class GUI extends GUIContainer {
     header.appendChild(this._grabIcon);
 
     // Search
-    this._searchIcon.className = 'leva__icons';
-    this._searchIcon.classList.add('leva__icons--search-icon');
-    this._searchIcon.classList.add('leva__icons--active-true');
-    this._searchIcon.innerHTML = icons.search;
-    header.appendChild(this._searchIcon);
+    this._searchBtn.className = 'leva__icons';
+    this._searchBtn.classList.add('leva__icons--search-icon');
+    this._searchBtn.classList.add('leva__icons--active-true');
+    this._searchBtn.innerHTML = icons.search;
+    header.appendChild(this._searchBtn);
 
     this.leva.appendChild(header);
     this._headerInteractivity();
@@ -86,7 +94,7 @@ export default class GUI extends GUIContainer {
   private _headerInteractivity() {
     const toggleContentState = () => {
       if (this.isOpen) {
-        (this._dropdown.firstElementChild as HTMLElement).style.setProperty(
+        (this._dropdownBtn.firstElementChild as HTMLElement).style.setProperty(
           'transform',
           'rotate(-90deg)'
         );
@@ -98,7 +106,7 @@ export default class GUI extends GUIContainer {
 
         this.isOpen = false;
       } else {
-        (this._dropdown.firstElementChild as HTMLElement).style.setProperty(
+        (this._dropdownBtn.firstElementChild as HTMLElement).style.setProperty(
           'transform',
           'rotate(0deg)'
         );
@@ -117,8 +125,21 @@ export default class GUI extends GUIContainer {
       }
     };
 
-    this._dropdown.onclick = () => {
+    this._dropdownBtn.onclick = () => {
       toggleContentState();
+    };
+
+    // Search
+    this._searchBtn.onclick = () => {
+      if (!this._isSearchOpen) {
+        console.log('open');
+        this._search.style.setProperty('height', '30px');
+        this._isSearchOpen = true;
+      } else {
+        console.log('close');
+        this._isSearchOpen = false;
+        this._search.style.setProperty('height', '0px');
+      }
     };
   }
 
