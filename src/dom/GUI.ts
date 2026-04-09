@@ -26,7 +26,7 @@ export default class GUI extends GUIContainer {
   private _searchInput?: HTMLInputElement;
 
   private _dropdownBtn = document.createElement('div');
-  private _grabIcon = document.createElement('div');
+  private _grabBtn = document.createElement('div');
   private _searchBtn = document.createElement('div');
   private _search = document.createElement('div');
   private _isSearchOpen = false;
@@ -49,7 +49,6 @@ export default class GUI extends GUIContainer {
     this.leva.classList.add('leva__base--fill-false');
     this.leva.classList.add('leva__base--flat-false');
     this.leva.appendChild(this._contentContainer);
-    // Let the content size itself naturally on mount
     requestAnimationFrame(() => {
       this._contentContainer.style.setProperty('height', 'auto');
     });
@@ -57,6 +56,7 @@ export default class GUI extends GUIContainer {
     root.appendChild(this.leva);
 
     parent.appendChild(root);
+    this._manageDrag();
   }
 
   private _createSearchBar() {
@@ -77,7 +77,6 @@ export default class GUI extends GUIContainer {
           .trim()
           .toLowerCase();
 
-        // Use cached rows for faster filtering
         const rows = this._rowCache;
 
         if (query === '') {
@@ -126,6 +125,89 @@ export default class GUI extends GUIContainer {
     this.leva.appendChild(this._search);
   }
 
+  private _manageDrag() {
+    const grab = this._grabBtn;
+
+    grab.style.touchAction = 'none';
+    grab.style.cursor = 'grab';
+
+    grab.addEventListener('pointerdown', (e: PointerEvent) => {
+      if (e.isPrimary === false) return;
+      e.preventDefault();
+
+      const root = this.leva;
+      if (!root) return;
+
+      const rect = root.getBoundingClientRect();
+
+      root.style.position = 'fixed';
+      root.style.left = `${rect.left}px`;
+      root.style.top = `${rect.top}px`;
+      root.style.margin = '0';
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startLeft = rect.left;
+      const startTop = rect.top;
+      const elWidth = rect.width;
+      const elHeight = rect.height;
+
+      try {
+        grab.setPointerCapture(e.pointerId);
+      } catch (err) {
+        void err;
+      }
+
+      let pendingDx = 0;
+      let pendingDy = 0;
+      let rafId: number | null = null;
+
+      const applyTransform = () => {
+        rafId = null;
+        root.style.transform = `translate3d(${pendingDx}px, ${pendingDy}px, 0)`;
+      };
+
+      const onMove = (ev: PointerEvent) => {
+        if (ev.isPrimary === false) return;
+        pendingDx = ev.clientX - startX;
+        pendingDy = ev.clientY - startY;
+        if (rafId == null) rafId = requestAnimationFrame(applyTransform);
+      };
+
+      const onUp = (upEv: PointerEvent) => {
+        if (upEv.isPrimary === false) return;
+        try {
+          grab.releasePointerCapture(upEv.pointerId);
+        } catch (err) {
+          void err;
+        }
+
+        if (rafId != null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        // compute final position and commit
+        const finalLeft = Math.round(startLeft + pendingDx);
+        const finalTop = Math.round(startTop + pendingDy);
+
+        const maxLeft = Math.max(window.innerWidth - elWidth, 0);
+        const maxTop = Math.max(window.innerHeight - elHeight, 0);
+
+        root.style.transform = '';
+        root.style.left = `${Math.min(Math.max(finalLeft, 0), maxLeft)}px`;
+        root.style.top = `${Math.min(Math.max(finalTop, 0), maxTop)}px`;
+        grab.style.cursor = 'grab';
+
+        document.removeEventListener('pointermove', onMove as EventListener);
+        document.removeEventListener('pointerup', onUp as EventListener);
+      };
+
+      document.addEventListener('pointermove', onMove as EventListener);
+      document.addEventListener('pointerup', onUp as EventListener);
+      grab.style.cursor = 'grabbing';
+    });
+  }
+
   private _createHeader() {
     const header = document.createElement('div');
     header.className = 'leva__header';
@@ -139,11 +221,11 @@ export default class GUI extends GUIContainer {
     header.appendChild(this._dropdownBtn);
 
     // Grab
-    this._grabIcon.className = 'leva__icons';
-    this._grabIcon.classList.add('leva__icons--grab-icon');
-    this._grabIcon.classList.add('leva__icons--active-true');
-    this._grabIcon.innerHTML = icons.grab;
-    header.appendChild(this._grabIcon);
+    this._grabBtn.className = 'leva__icons';
+    this._grabBtn.classList.add('leva__icons--grab-icon');
+    this._grabBtn.classList.add('leva__icons--active-true');
+    this._grabBtn.innerHTML = icons.grab;
+    header.appendChild(this._grabBtn);
 
     // Search
     this._searchBtn.className = 'leva__icons';
@@ -154,7 +236,6 @@ export default class GUI extends GUIContainer {
 
     this.leva.appendChild(header);
     this._headerInteractivity();
-    // build initial cache and observe changes to keep it up to date
     this._buildRowCache();
     this._observer = new MutationObserver(() => {
       window.clearTimeout(this._cacheRebuildId);
@@ -168,7 +249,6 @@ export default class GUI extends GUIContainer {
       subtree: true,
       characterData: true,
     });
-    // keyboard shortcut
     document.addEventListener('keydown', (e) => {
       const key = (e.key || '').toLowerCase();
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'l') {
@@ -180,7 +260,6 @@ export default class GUI extends GUIContainer {
 
   private _openSearchAndFocus() {
     if (!this._isSearchOpen) this._searchBtn.click();
-    // focus the input on next frame after open animation
     requestAnimationFrame(() => {
       this._searchInput?.focus();
       (this._searchInput as HTMLInputElement)?.select?.();
@@ -193,7 +272,6 @@ export default class GUI extends GUIContainer {
         .firstElementChild as HTMLElement;
 
       const animateToOpen = () => {
-        // cancel previous animations
         this._heightAnim?.cancel();
         this._opacityAnim?.cancel();
         this._iconAnim?.cancel();
