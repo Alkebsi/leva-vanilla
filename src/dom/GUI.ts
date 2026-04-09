@@ -283,19 +283,24 @@ export default class GUI extends GUIContainer {
 
         this._heightAnim = this._contentContainer.animate(
           [{ height: `${from}px` }, { height: `${to}px` }],
-          { duration: 220, easing: 'ease' }
+          { duration: 350, easing: 'ease' }
         );
 
         this._opacityAnim = contentElem.animate(
           [{ opacity: 0 }, { opacity: 1 }],
-          { duration: 220, easing: 'linear' }
+          {
+            duration: 350,
+            delay: 200,
+            easing: 'ease-out',
+            fill: 'both',
+          }
         );
 
         this._iconAnim = (
           this._dropdownBtn.firstElementChild as HTMLElement
         ).animate(
           [{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0deg)' }],
-          { duration: 220, easing: 'ease', fill: 'forwards' }
+          { duration: 350, easing: 'ease', fill: 'forwards' }
         );
 
         this._heightAnim.onfinish = () => {
@@ -319,19 +324,24 @@ export default class GUI extends GUIContainer {
 
         this._heightAnim = this._contentContainer.animate(
           [{ height: `${from}px` }, { height: `${to}px` }],
-          { duration: 200, easing: 'ease' }
+          { duration: 350, easing: 'ease' }
         );
 
         this._opacityAnim = contentElem.animate(
           [{ opacity: 1 }, { opacity: 0 }],
-          { duration: 160, easing: 'linear' }
+          {
+            duration: 250,
+            delay: 0,
+            easing: 'ease-in',
+            fill: 'forwards',
+          }
         );
 
         this._iconAnim = (
           this._dropdownBtn.firstElementChild as HTMLElement
         ).animate(
           [{ transform: 'rotate(0deg)' }, { transform: 'rotate(-90deg)' }],
-          { duration: 200, easing: 'ease', fill: 'forwards' }
+          { duration: 350, easing: 'ease', fill: 'forwards' }
         );
 
         this._heightAnim.onfinish = () => {
@@ -358,7 +368,7 @@ export default class GUI extends GUIContainer {
       this._search.style.overflow = 'hidden';
       this._searchAnim = this._search.animate(
         [{ height: `${from}px` }, { height: `${to}px` }],
-        { duration: 160, easing: 'ease' }
+        { duration: 350, easing: 'ease' }
       );
 
       this._searchAnim.onfinish = () => {
@@ -392,7 +402,7 @@ export default class GUI extends GUIContainer {
     this._heightAnim?.cancel();
     this._heightAnim = this._contentContainer.animate(
       [{ height: `${prev}px` }, { height: `${next}px` }],
-      { duration: animate ? 180 : 0, easing: 'ease' }
+      { duration: animate ? 350 : 0, easing: 'ease' }
     );
 
     this._heightAnim.onfinish = () => {

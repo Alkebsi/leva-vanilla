@@ -2,6 +2,7 @@
 @import './header.css';
 @import './base.css';
 @import './content.css';
+@import './folder.css';
 
 @import './controllers/action.css';
 @import './controllers/checkbox.css';

@@ -23,7 +23,8 @@ const data2 = {
   },
 };
 const gui = new GUI();
-// const gui = headGUI.addFolder('Something');
+const folder1 = gui.addFolder('First Folder');
+const folder2 = gui.addFolder('Second Folder');
 
 // Vanilla Three.js app
 const canvas = document.createElement('canvas');
@@ -71,14 +72,14 @@ text.style.setProperty('z-index', '2');
 
 document.body.appendChild(text); // this is as you said, need to update if subscribe is set correctly, but it is not for a clear reason
 
-gui
+folder1
   .add(data, 'foo')
   .onChange((value) => {
     if (data.enabled) cube.position.x = value;
     else cube.position.y = value;
   })
   .name(`PositionX/Y`);
-gui
+folder1
   .add(data, 'bar', -1, 1, 0.01)
   .onChange((value) => {
     if (data.enabled) cube.position.y = value;
@@ -90,13 +91,13 @@ gui
 //   cube.position.y = value
 // });
 
-gui.addColor(data, 'color').onChange((value) => {
+folder2.addColor(data, 'color').onChange((value) => {
   cube.material.color.set(value);
 }); // color picker
-gui.add(data, 'textTest');
+folder1.add(data, 'textTest');
 // .onChange((value) => {console.log(value);}); // Text
 
-gui.add(data, 'enabled').name('Twist-X/Y'); // checkbox
+folder2.add(data, 'enabled').name('Twist-X/Y'); // checkbox
 gui.add(data2, 'alertUser'); // function button
 gui.add(data, 'cubeSize', ['large', 'medium', 'small']).onChange((value) => {
   changeScale(value);

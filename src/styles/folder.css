@@ -1,0 +1,67 @@
+.leva__folder {
+  --leva-colors-folderWidgetColor: #8c92a4;
+  --leva-colors-folderTextColor: #fefefe;
+  padding-left: var(--leva-space-md);
+  padding-right: var(--leva-space-md);
+  color: var(--leva-colors-folderTextColor);
+  user-select: none;
+  cursor: pointer;
+  font-weight: var(--leva-fontWeights-folder);
+}
+
+.leva__folder:not(:first-of-type) {
+  padding-top: var(--leva-space-sm);
+  margin-top: var(--leva-space-md);
+  border-top: var(--leva-borderWidths-folder) solid
+    var(--leva-colors-elevation1);
+}
+
+.leva__folder:hover > .leva__folder-header > svg {
+  opacity: 1;
+}
+
+.leva__folder:hover > .leva__folder-content::after {
+  opacity: 0.6;
+}
+
+.leva__folder-header {
+  display: flex;
+  align-items: center;
+  color: var(--leva-colors-folderTextColor);
+  user-select: none;
+  cursor: pointer;
+  height: var(--leva-sizes-folderTitleHeight);
+  font-weight: var(--leva-fontWeights-folder);
+}
+
+.leva__folder-header > svg {
+  width: 9px;
+  margin-left: -4px;
+  margin-right: 4px;
+  cursor: pointer;
+  fill: var(--leva-colors-folderWidgetColor);
+  opacity: 0.6;
+  transition: opacity 200ms;
+}
+
+.leva__folder-content {
+  padding: 0;
+  position: relative;
+}
+
+.leva__folder-content::after {
+  content: '';
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: var(--leva-borderWidths-folder);
+  height: 100%;
+  background-color: var(--leva-colors-folderWidgetColor);
+  opacity: 0.4;
+  transform: translateX(-50%);
+  transition: opacity 200ms;
+}
+
+.leva__folder-content .leva__row-container {
+  padding-right: 0;
+}
