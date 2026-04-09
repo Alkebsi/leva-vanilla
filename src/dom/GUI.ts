@@ -266,98 +266,103 @@ export default class GUI extends GUIContainer {
     });
   }
 
-  private _headerInteractivity() {
-    const toggleContentState = () => {
-      const contentElem = this._contentContainer
-        .firstElementChild as HTMLElement;
+  private _toggleContentState = (closeOnly?: boolean) => {
+    const contentElem = this._contentContainer.firstElementChild as HTMLElement;
 
-      const animateToOpen = () => {
-        this._heightAnim?.cancel();
-        this._opacityAnim?.cancel();
-        this._iconAnim?.cancel();
+    const animateToOpen = () => {
+      this._heightAnim?.cancel();
+      this._opacityAnim?.cancel();
+      this._iconAnim?.cancel();
 
-        const from = this._contentContainer.clientHeight || 0;
-        const to = contentElem.scrollHeight;
+      const from = this._contentContainer.clientHeight || 0;
+      const to = contentElem.scrollHeight;
 
-        this._contentContainer.style.overflow = 'hidden';
+      this._contentContainer.style.overflow = 'hidden';
 
-        this._heightAnim = this._contentContainer.animate(
-          [{ height: `${from}px` }, { height: `${to}px` }],
-          { duration: 350, easing: 'ease' }
-        );
+      this._heightAnim = this._contentContainer.animate(
+        [{ height: `${from}px` }, { height: `${to}px` }],
+        { duration: closeOnly ? 0 : 350, easing: 'ease' }
+      );
 
-        this._opacityAnim = contentElem.animate(
-          [{ opacity: 0 }, { opacity: 1 }],
-          {
-            duration: 350,
-            delay: 200,
-            easing: 'ease-out',
-            fill: 'both',
-          }
-        );
+      this._opacityAnim = contentElem.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        {
+          duration: closeOnly ? 0 : 350,
+          delay: 200,
+          easing: 'ease-out',
+          fill: 'both',
+        }
+      );
 
-        this._iconAnim = (
-          this._dropdownBtn.firstElementChild as HTMLElement
-        ).animate(
-          [{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0deg)' }],
-          { duration: 350, easing: 'ease', fill: 'forwards' }
-        );
+      this._iconAnim = (
+        this._dropdownBtn.firstElementChild as HTMLElement
+      ).animate(
+        [{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0deg)' }],
+        { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
+      );
 
-        this._heightAnim.onfinish = () => {
-          this._contentContainer.style.height = 'auto';
-          this._contentContainer.style.overflow = '';
-        };
-
-        this.isOpen = true;
+      this._heightAnim.onfinish = () => {
+        this._contentContainer.style.height = 'auto';
+        this._contentContainer.style.overflow = '';
       };
 
-      const animateToClose = () => {
-        this._heightAnim?.cancel();
-        this._opacityAnim?.cancel();
-        this._iconAnim?.cancel();
-
-        const from =
-          this._contentContainer.clientHeight || contentElem.scrollHeight;
-        const to = 0;
-
-        this._contentContainer.style.overflow = 'hidden';
-
-        this._heightAnim = this._contentContainer.animate(
-          [{ height: `${from}px` }, { height: `${to}px` }],
-          { duration: 350, easing: 'ease' }
-        );
-
-        this._opacityAnim = contentElem.animate(
-          [{ opacity: 1 }, { opacity: 0 }],
-          {
-            duration: 250,
-            delay: 0,
-            easing: 'ease-in',
-            fill: 'forwards',
-          }
-        );
-
-        this._iconAnim = (
-          this._dropdownBtn.firstElementChild as HTMLElement
-        ).animate(
-          [{ transform: 'rotate(0deg)' }, { transform: 'rotate(-90deg)' }],
-          { duration: 350, easing: 'ease', fill: 'forwards' }
-        );
-
-        this._heightAnim.onfinish = () => {
-          this._contentContainer.style.height = '0px';
-          this._contentContainer.style.overflow = '';
-        };
-
-        this.isOpen = false;
-      };
-
-      if (this.isOpen) animateToClose();
-      else animateToOpen();
+      this.isOpen = true;
     };
 
+    const animateToClose = () => {
+      this._heightAnim?.cancel();
+      this._opacityAnim?.cancel();
+      this._iconAnim?.cancel();
+
+      const from =
+        this._contentContainer.clientHeight || contentElem.scrollHeight;
+      const to = 0;
+
+      this._contentContainer.style.overflow = 'hidden';
+
+      this._heightAnim = this._contentContainer.animate(
+        [{ height: `${from}px` }, { height: `${to}px` }],
+        {
+          duration: closeOnly ? 0.1 : 350,
+          easing: 'ease',
+        }
+      );
+
+      this._opacityAnim = contentElem.animate(
+        [{ opacity: 1 }, { opacity: 0 }],
+        {
+          duration: closeOnly ? 0 : 250,
+          delay: 0,
+          easing: 'ease-in',
+          fill: 'forwards',
+        }
+      );
+
+      this._iconAnim = (
+        this._dropdownBtn.firstElementChild as HTMLElement
+      ).animate(
+        [{ transform: 'rotate(0deg)' }, { transform: 'rotate(-90deg)' }],
+        { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
+      );
+
+      this._heightAnim.onfinish = () => {
+        this._contentContainer.style.height = '0px';
+        this._contentContainer.style.overflow = '';
+      };
+
+      this.isOpen = false;
+    };
+
+    if (!closeOnly) {
+      if (this.isOpen) animateToClose();
+      else animateToOpen();
+    } else {
+      animateToClose();
+    }
+  };
+  private _headerInteractivity() {
     this._dropdownBtn.onclick = () => {
-      toggleContentState();
+      this._toggleContentState();
     };
 
     this._searchBtn.onclick = () => {
@@ -424,6 +429,10 @@ export default class GUI extends GUIContainer {
         labelText: String(labelEl?.textContent || ''),
       };
     });
+  }
+
+  close() {
+    this._toggleContentState(true);
   }
 
   addFolder(name: string) {

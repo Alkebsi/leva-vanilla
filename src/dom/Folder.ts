@@ -31,16 +31,18 @@ export default class Folder extends GUIContainer {
     this.wrapper = wrapper;
     this.content = content;
 
-    header.onclick = () => this.toggle();
+    header.onclick = () => this._toggle();
   }
 
   addFolder(name: string) {
     return new Folder(this.container, name);
   }
 
-  toggle() {
+  private _toggle(closeOnly?: boolean) {
     const wasOpen = this.isOpen;
     this.isOpen = !wasOpen;
+
+    if (closeOnly) this.isOpen = false;
 
     const content = this.content;
     const headerIcon = this.wrapper.querySelector('.leva__folder-header')
@@ -63,7 +65,7 @@ export default class Folder extends GUIContainer {
 
         this._heightAnim = content.animate(
           [{ height: `0px` }, { height: `${to}px` }],
-          { duration: 350, easing: 'ease' }
+          { duration: closeOnly ? 0 : 350, easing: 'ease' }
         );
 
         this._heightAnim.onfinish = () => {
@@ -75,7 +77,7 @@ export default class Folder extends GUIContainer {
         if (headerIcon) {
           this._iconAnim = headerIcon.animate(
             [{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0deg)' }],
-            { duration: 350, easing: 'ease', fill: 'forwards' }
+            { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
           );
         }
       });
@@ -89,7 +91,7 @@ export default class Folder extends GUIContainer {
       requestAnimationFrame(() => {
         this._heightAnim = content.animate(
           [{ height: `${from}px` }, { height: `0px` }],
-          { duration: 350, easing: 'ease' }
+          { duration: closeOnly ? 0 : 350, easing: 'ease' }
         );
 
         this._heightAnim.onfinish = () => {
@@ -102,11 +104,15 @@ export default class Folder extends GUIContainer {
         if (headerIcon) {
           this._iconAnim = headerIcon.animate(
             [{ transform: 'rotate(0deg)' }, { transform: 'rotate(-90deg)' }],
-            { duration: 350, easing: 'ease', fill: 'forwards' }
+            { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
           );
         }
       });
     }
+  }
+
+  close() {
+    this._toggle(true);
   }
 
   destroy() {

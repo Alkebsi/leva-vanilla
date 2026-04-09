@@ -25,6 +25,8 @@ const data2 = {
 const gui = new GUI();
 const folder1 = gui.addFolder('First Folder');
 const folder2 = gui.addFolder('Second Folder');
+gui.close();
+folder1.close();
 
 // Vanilla Three.js app
 const canvas = document.createElement('canvas');

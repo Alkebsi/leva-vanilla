@@ -109,6 +109,10 @@ export default class GUIContainer {
     return colorController;
   }
 
+  close() {
+    this.isOpen = false;
+  }
+
   update() {
     this.controllers.forEach((c) => c.refresh());
   }
