@@ -12,6 +12,7 @@
   display: grid;
   grid-template-columns: 100%;
   row-gap: var(--leva-space-rowGap);
+  padding: var(--leva-space-md) 0;
   opacity: 1;
   transition: opacity 250ms;
 }
@@ -20,14 +21,6 @@
   padding-left: var(--leva-space-md);
   padding-right: var(--leva-space-md);
   opacity: 1;
-}
-
-.leva__row-container:first-of-type {
-  padding-top: var(--leva-space-md);
-}
-
-.leva__row-container:last-of-type {
-  padding-bottom: var(--leva-space-md);
 }
 
 .leva__row {
