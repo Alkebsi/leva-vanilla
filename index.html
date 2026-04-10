@@ -6,13 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>leva-vanilla</title>
     <style>
-      html {
-        background-color: #333;
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      #controls-display-container {
+        padding: 50px 20px;
+        font-family: monospace;
+      }
+
+      .control-line {
+        display: block;
+        padding: 1px 20px;
+        border-radius: 20px;
+        transition: background 350ms ease-out;
+      }
+
+      .update {
+        background: #98ffe5;
+        transition: none;
       }
     </style>
   </head>
   <body>
-    <div id="app"></div>
     <script type="module" src="/src/demo.ts"></script>
   </body>
 </html>
