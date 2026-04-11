@@ -1,8 +1,24 @@
 {
   "name": "leva-vanilla",
-  "private": true,
   "version": "0.0.1-alpha",
+  "description": "A lightweight, framework-agnostic control panel inspired by Leva — built for plain JavaScript.",
   "type": "module",
+  "author": "Alkebsi",
+  "license": "MIT",
+  "keywords": [
+    "gui",
+    "datgui",
+    "leva",
+    "lil-gui"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Alkebsi/leva-vanilla.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Alkebsi/leva-vanilla/issues"
+  },
+  "homepage": "https://github.com/Alkebsi/leva-vanilla#readme",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -22,6 +38,7 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/leva-vanilla.js",
       "require": "./dist/leva-vanilla.cjs"
     }
@@ -45,12 +62,10 @@
   "lint-staged": {
     "*.{js,ts}": [
       "eslint . --fix",
-      "prettier . --write",
-      "git add"
+      "prettier . --write"
     ],
     "*.{json,md}": [
-      "prettier . --write",
-      "git add"
+      "prettier . --write"
     ]
   }
 }
