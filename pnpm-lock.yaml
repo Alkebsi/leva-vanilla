@@ -10,9 +10,6 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.2.0(jiti@2.6.1))
-      '@types/three':
-        specifier: ^0.182.0
-        version: 0.182.0
       eslint:
         specifier: ^10.2.0
         version: 10.2.0(jiti@2.6.1)
@@ -31,9 +28,6 @@ importers:
       prettier:
         specifier: 3.8.1
         version: 3.8.1
-      three:
-        specifier: 0.182.0
-        version: 0.182.0
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -43,109 +37,11 @@ importers:
       vite:
         specifier: ^7.2.4
         version: 7.3.1(jiti@2.6.1)(yaml@2.8.3)
-      vite-plugin-lib-inject-css:
-        specifier: ^2.2.2
-        version: 2.2.2(vite@7.3.1(jiti@2.6.1)(yaml@2.8.3))
+      vite-plugin-css-injected-by-js:
+        specifier: ^4.0.1
+        version: 4.0.1(vite@7.3.1(jiti@2.6.1)(yaml@2.8.3))
 
 packages:
-  '@ast-grep/napi-darwin-arm64@0.36.3':
-    resolution:
-      {
-        integrity: sha512-uM0Hrm5gcHqaBL64ktmPBFMTorTlPKWsUfi0E2Cg09GJfeYWvZmicCqgd7qVtjURmQvFQdb4JSqHIkJvws6Uqw==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [arm64]
-    os: [darwin]
-
-  '@ast-grep/napi-darwin-x64@0.36.3':
-    resolution:
-      {
-        integrity: sha512-wEMeQw8lRL66puG2m8m0kDRQDtubygj59HA/cmut2V5SPx/13BN3wuEk6JPv97gqGUCUGhG2+5Z6UZ/Ll2q01Q==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [x64]
-    os: [darwin]
-
-  '@ast-grep/napi-linux-arm64-gnu@0.36.3':
-    resolution:
-      {
-        integrity: sha512-sMsTMaUjW7SM8KPbLviCSBuM4zgJcwvie1yZI92HKSlFzC7ABe7X7UvyUREB+JwqccDVEL5yOJAjqB8eFSCizw==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
-  '@ast-grep/napi-linux-arm64-musl@0.36.3':
-    resolution:
-      {
-        integrity: sha512-2XRmNYuovZu0Pa4J3or4PKMkQZnXXfpVcCrPwWB/2ytX7XUo+TWLgYE8rPVnJOyw5zujkveFb0XUrro9mQgLzw==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [arm64]
-    os: [linux]
-    libc: [musl]
-
-  '@ast-grep/napi-linux-x64-gnu@0.36.3':
-    resolution:
-      {
-        integrity: sha512-mTwPRbBi1feGqR2b5TWC5gkEDeRi8wfk4euF5sKNihfMGHj6pdfINHQ3QvLVO4C7z0r/wgWLAvditFA0b997dg==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
-  '@ast-grep/napi-linux-x64-musl@0.36.3':
-    resolution:
-      {
-        integrity: sha512-tMGPrT+zuZzJK6n1cD1kOii7HYZE9gUXjwtVNE/uZqXEaWP6lmkfoTMbLjnxEe74VQbmaoDGh1/cjrDBnqC6Uw==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [x64]
-    os: [linux]
-    libc: [musl]
-
-  '@ast-grep/napi-win32-arm64-msvc@0.36.3':
-    resolution:
-      {
-        integrity: sha512-7pFyr9+dyV+4cBJJ1I57gg6PDXP3GBQeVAsEEitzEruxx4Hb4cyNro54gGtlsS+6ty+N0t004tPQxYO2VrsPIg==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [arm64]
-    os: [win32]
-
-  '@ast-grep/napi-win32-ia32-msvc@0.36.3':
-    resolution:
-      {
-        integrity: sha512-MPAgccH9VscRaFuEBMzDGPS+3c4cKNVGIVJ7WSNa1nZtLQ0eFEaPJ7pyDnCezgVSxfNFVYBvKyyF/vcm7Qc9+A==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [ia32]
-    os: [win32]
-
-  '@ast-grep/napi-win32-x64-msvc@0.36.3':
-    resolution:
-      {
-        integrity: sha512-TIVtuSbXhty9kaSEfr4ULWx5PAuUeGgUkFaR60lmOs7sGTWgpig+suwKfTmevoAblFknCW/aMHOwziwJoUZA6A==,
-      }
-    engines: { node: '>= 10' }
-    cpu: [x64]
-    os: [win32]
-
-  '@ast-grep/napi@0.36.3':
-    resolution:
-      {
-        integrity: sha512-ExypohE8L7FvKBHxu7UpwcV9XVfyS+AqNZKyKIfxYwJyD9l7Gw6pmMYd7J2uopJsPEIUf44/emEFds6nFUx/dw==,
-      }
-    engines: { node: '>= 10' }
-
-  '@dimforge/rapier3d-compat@0.12.0':
-    resolution:
-      {
-        integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==,
-      }
-
   '@esbuild/aix-ppc64@0.27.2':
     resolution:
       {
@@ -471,12 +367,6 @@ packages:
       }
     engines: { node: '>=18.18' }
 
-  '@jridgewell/sourcemap-codec@1.5.5':
-    resolution:
-      {
-        integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==,
-      }
-
   '@rollup/rollup-android-arm-eabi@4.57.1':
     resolution:
       {
@@ -690,12 +580,6 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@tweenjs/tween.js@23.1.3':
-    resolution:
-      {
-        integrity: sha512-vJmvvwFxYuGnF2axRtPYocag6Clbb5YS7kLL+SO/TeVFzHqDIWrNKYtcsPMibjDx9O+bu+psAy9NKfWklassUA==,
-      }
-
   '@types/esrecurse@4.3.1':
     resolution:
       {
@@ -712,24 +596,6 @@ packages:
     resolution:
       {
         integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==,
-      }
-
-  '@types/stats.js@0.17.4':
-    resolution:
-      {
-        integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==,
-      }
-
-  '@types/three@0.182.0':
-    resolution:
-      {
-        integrity: sha512-WByN9V3Sbwbe2OkWuSGyoqQO8Du6yhYaXtXLoA5FkKTUJorZ+yOHBZ35zUUPQXlAKABZmbYp5oAqpA4RBjtJ/Q==,
-      }
-
-  '@types/webxr@0.5.24':
-    resolution:
-      {
-        integrity: sha512-h8fgEd/DpoS9CBrjEQXR+dIDraopAEfu4wYVNY2tEPwk60stPWhvZMf4Foo5FakuQ7HFZoa8WceaWFervK2Ovg==,
       }
 
   '@typescript-eslint/eslint-plugin@8.58.0':
@@ -820,12 +686,6 @@ packages:
         integrity: sha512-XJ9UD9+bbDo4a4epraTwG3TsNPeiB9aShrUneAVXy8q4LuwowN+qu89/6ByLMINqvIMeI9H9hOHQtg/ijrYXzQ==,
       }
     engines: { node: ^18.18.0 || ^20.9.0 || >=21.1.0 }
-
-  '@webgpu/types@0.1.69':
-    resolution:
-      {
-        integrity: sha512-RPmm6kgRbI8e98zSD3RVACvnuktIja5+yLgDAkTmxLr90BEwdTXRQWNLF3ETTTyH/8mKhznZuN5AveXYFEsMGQ==,
-      }
 
   acorn-jsx@5.3.2:
     resolution:
@@ -1069,12 +929,6 @@ packages:
       picomatch:
         optional: true
 
-  fflate@0.8.2:
-    resolution:
-      {
-        integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==,
-      }
-
   file-entry-cache@8.0.0:
     resolution:
       {
@@ -1253,18 +1107,6 @@ packages:
         integrity: sha512-9ie8ItPR6tjY5uYJh8K/Zrv/RMZ5VOlOWvtZdEHYSTFKZfIBPQa9tOAEeAWhd+AnIneLJ22w5fjOYtoutpWq5w==,
       }
     engines: { node: '>=18' }
-
-  magic-string@0.30.21:
-    resolution:
-      {
-        integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==,
-      }
-
-  meshoptimizer@0.22.0:
-    resolution:
-      {
-        integrity: sha512-IebiK79sqIy+E4EgOr+CAw+Ke8hAspXKzBd0JdgEmPHiAwmvEj2S4h1rfvo+o/BnfEYd/jAOg5IeeIjzlzSnDg==,
-      }
 
   mimic-function@5.0.1:
     resolution:
@@ -1483,12 +1325,6 @@ packages:
       }
     engines: { node: '>=12' }
 
-  three@0.182.0:
-    resolution:
-      {
-        integrity: sha512-GbHabT+Irv+ihI1/f5kIIsZ+Ef9Sl5A1Y7imvS5RQjWgtTPfPnZ43JmlYI7NtCRDK9zir20lQpfg8/9Yd02OvQ==,
-      }
-
   tinyexec@1.0.4:
     resolution:
       {
@@ -1543,13 +1379,13 @@ packages:
         integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==,
       }
 
-  vite-plugin-lib-inject-css@2.2.2:
+  vite-plugin-css-injected-by-js@4.0.1:
     resolution:
       {
-        integrity: sha512-NF30p0GwtfSAmVlxo2NgPXM2rEdtgV7LFi4lkzajKD7P3Ru/ZAFmI533M0Z5qyMZpvNMxVGkewzpjD0HOWtbDQ==,
+        integrity: sha512-WfyRojojQyAO/KzWf+efcXpTPv6zJPXaRmr9EYq5a4v5I3PWCR7kR01hiri2lW6+rHm3a57kpwsf+iahIJi1Qw==,
       }
     peerDependencies:
-      vite: '*'
+      vite: '>2.0.0-0'
 
   vite@7.3.1:
     resolution:
@@ -1632,47 +1468,6 @@ packages:
     engines: { node: '>=10' }
 
 snapshots:
-  '@ast-grep/napi-darwin-arm64@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-darwin-x64@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-linux-arm64-gnu@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-linux-arm64-musl@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-linux-x64-gnu@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-linux-x64-musl@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-win32-arm64-msvc@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-win32-ia32-msvc@0.36.3':
-    optional: true
-
-  '@ast-grep/napi-win32-x64-msvc@0.36.3':
-    optional: true
-
-  '@ast-grep/napi@0.36.3':
-    optionalDependencies:
-      '@ast-grep/napi-darwin-arm64': 0.36.3
-      '@ast-grep/napi-darwin-x64': 0.36.3
-      '@ast-grep/napi-linux-arm64-gnu': 0.36.3
-      '@ast-grep/napi-linux-arm64-musl': 0.36.3
-      '@ast-grep/napi-linux-x64-gnu': 0.36.3
-      '@ast-grep/napi-linux-x64-musl': 0.36.3
-      '@ast-grep/napi-win32-arm64-msvc': 0.36.3
-      '@ast-grep/napi-win32-ia32-msvc': 0.36.3
-      '@ast-grep/napi-win32-x64-msvc': 0.36.3
-
-  '@dimforge/rapier3d-compat@0.12.0': {}
-
   '@esbuild/aix-ppc64@0.27.2':
     optional: true
 
@@ -1796,8 +1591,6 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@jridgewell/sourcemap-codec@1.5.5': {}
-
   '@rollup/rollup-android-arm-eabi@4.57.1':
     optional: true
 
@@ -1873,27 +1666,11 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.57.1':
     optional: true
 
-  '@tweenjs/tween.js@23.1.3': {}
-
   '@types/esrecurse@4.3.1': {}
 
   '@types/estree@1.0.8': {}
 
   '@types/json-schema@7.0.15': {}
-
-  '@types/stats.js@0.17.4': {}
-
-  '@types/three@0.182.0':
-    dependencies:
-      '@dimforge/rapier3d-compat': 0.12.0
-      '@tweenjs/tween.js': 23.1.3
-      '@types/stats.js': 0.17.4
-      '@types/webxr': 0.5.24
-      '@webgpu/types': 0.1.69
-      fflate: 0.8.2
-      meshoptimizer: 0.22.0
-
-  '@types/webxr@0.5.24': {}
 
   '@typescript-eslint/eslint-plugin@8.58.0(@typescript-eslint/parser@8.58.0(eslint@10.2.0(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.0(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
@@ -1985,8 +1762,6 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.58.0
       eslint-visitor-keys: 5.0.1
-
-  '@webgpu/types@0.1.69': {}
 
   acorn-jsx@5.3.2(acorn@8.16.0):
     dependencies:
@@ -2153,8 +1928,6 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.3
 
-  fflate@0.8.2: {}
-
   file-entry-cache@8.0.0:
     dependencies:
       flat-cache: 4.0.1
@@ -2248,12 +2021,6 @@ snapshots:
       slice-ansi: 7.1.2
       strip-ansi: 7.2.0
       wrap-ansi: 9.0.2
-
-  magic-string@0.30.21:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
-
-  meshoptimizer@0.22.0: {}
 
   mimic-function@5.0.1: {}
 
@@ -2385,8 +2152,6 @@ snapshots:
     dependencies:
       ansi-regex: 6.2.2
 
-  three@0.182.0: {}
-
   tinyexec@1.0.4: {}
 
   tinyglobby@0.2.15:
@@ -2419,11 +2184,8 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  vite-plugin-lib-inject-css@2.2.2(vite@7.3.1(jiti@2.6.1)(yaml@2.8.3)):
+  vite-plugin-css-injected-by-js@4.0.1(vite@7.3.1(jiti@2.6.1)(yaml@2.8.3)):
     dependencies:
-      '@ast-grep/napi': 0.36.3
-      magic-string: 0.30.21
-      picocolors: 1.1.1
       vite: 7.3.1(jiti@2.6.1)(yaml@2.8.3)
 
   vite@7.3.1(jiti@2.6.1)(yaml@2.8.3):

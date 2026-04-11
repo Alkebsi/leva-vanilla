@@ -332,7 +332,7 @@ export default class GUI extends GUIContainer {
       this._heightAnim = this._contentContainer.animate(
         [{ height: `${currentHeight}px` }, { height: `${toHeight}px` }],
         {
-          duration: closeOnly ? 0 : 350,
+          duration: closeOnly ? 0.1 : 350,
           easing: 'ease',
           fill: 'forwards',
         }

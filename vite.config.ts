@@ -1,8 +1,8 @@
 import { defineConfig } from 'vite';
-import { libInjectCss } from 'vite-plugin-lib-inject-css';
+import cssInjectedByJs from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig({
-  plugins: [libInjectCss()],
+  plugins: [cssInjectedByJs()],
   build: {
     sourcemap: true,
     lib: {
