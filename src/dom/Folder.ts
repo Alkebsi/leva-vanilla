@@ -40,74 +40,95 @@ export default class Folder extends GUIContainer {
 
   private _toggle(closeOnly?: boolean) {
     const wasOpen = this.isOpen;
-    this.isOpen = !wasOpen;
-
-    if (closeOnly) this.isOpen = false;
+    const targetOpen = closeOnly ? false : !wasOpen;
+    this.isOpen = targetOpen;
 
     const content = this.content;
     const headerIcon = this.wrapper.querySelector('.leva__folder-header')
       ?.firstElementChild as HTMLElement | null;
 
-    this._heightAnim?.cancel();
+    const currentHeight = content.getBoundingClientRect().height;
+    const currentOpacity = window.getComputedStyle(content).opacity;
+
+    let currentRotation = wasOpen ? 0 : -90;
+    if (headerIcon) {
+      const style = window.getComputedStyle(headerIcon);
+      const matrix = style.transform;
+      if (matrix && matrix !== 'none') {
+        const values = matrix.split('(')[1].split(')')[0].split(',');
+        currentRotation = Math.round(
+          Math.atan2(parseFloat(values[1]), parseFloat(values[0])) *
+            (180 / Math.PI)
+        );
+      }
+    }
+
+    content.getAnimations().forEach((anim) => anim.cancel());
     this._iconAnim?.cancel();
 
     if (this.isOpen) {
-      // show then measure and animate height from 0 -> scrollHeight
       content.style.display = '';
-      // batch measurement and writes to the next frame
-      requestAnimationFrame(() => {
-        const to = content.scrollHeight;
+      content.style.overflow = 'hidden';
+      const fullHeight = content.scrollHeight;
 
-        content.style.overflow = 'hidden';
-        content.style.willChange = 'height';
-        // start from 0 so animation grows
-        content.style.height = '0px';
+      this._heightAnim = content.animate(
+        [{ height: `${currentHeight}px` }, { height: `${fullHeight}px` }],
+        { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
+      );
 
-        this._heightAnim = content.animate(
-          [{ height: `0px` }, { height: `${to}px` }],
-          { duration: closeOnly ? 0 : 350, easing: 'ease' }
-        );
+      content.animate([{ opacity: currentOpacity }, { opacity: 1 }], {
+        duration: closeOnly ? 0 : 350,
+        delay: closeOnly ? 0 : 200,
+        easing: 'ease-out',
+        fill: 'both',
+      });
 
-        this._heightAnim.onfinish = () => {
+      this._heightAnim.onfinish = () => {
+        if (this.isOpen) {
           content.style.height = 'auto';
           content.style.overflow = '';
-          content.style.willChange = '';
-        };
-
-        if (headerIcon) {
-          this._iconAnim = headerIcon.animate(
-            [{ transform: 'rotate(-90deg)' }, { transform: 'rotate(0deg)' }],
-            { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
-          );
         }
-      });
-    } else {
-      // closing: measure current height and animate to 0
-      const from = content.scrollHeight || content.clientHeight || 0;
-      content.style.overflow = 'hidden';
-      content.style.willChange = 'height';
-      content.style.height = `${from}px`;
+      };
 
-      requestAnimationFrame(() => {
-        this._heightAnim = content.animate(
-          [{ height: `${from}px` }, { height: `0px` }],
-          { duration: closeOnly ? 0 : 350, easing: 'ease' }
+      if (headerIcon) {
+        this._iconAnim = headerIcon.animate(
+          [
+            { transform: `rotate(${currentRotation}deg)` },
+            { transform: 'rotate(0deg)' },
+          ],
+          { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
         );
+      }
+    } else {
+      content.style.overflow = 'hidden';
 
-        this._heightAnim.onfinish = () => {
-          content.style.height = '';
+      this._heightAnim = content.animate(
+        [
+          { height: `${currentHeight}px`, opacity: currentOpacity },
+          { height: `0px`, opacity: 0 },
+        ],
+        { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
+      );
+
+      this._heightAnim.onfinish = () => {
+        if (!this.isOpen) {
           content.style.display = 'none';
-          content.style.overflow = '';
-          content.style.willChange = '';
-        };
-
-        if (headerIcon) {
-          this._iconAnim = headerIcon.animate(
-            [{ transform: 'rotate(0deg)' }, { transform: 'rotate(-90deg)' }],
-            { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
-          );
+          content.style.height = '';
+          content.style.opacity = '0';
         }
-      });
+        content.style.overflow = '';
+        this._heightAnim?.cancel();
+      };
+
+      if (headerIcon) {
+        this._iconAnim = headerIcon.animate(
+          [
+            { transform: `rotate(${currentRotation}deg)` },
+            { transform: 'rotate(-90deg)' },
+          ],
+          { duration: closeOnly ? 0 : 350, easing: 'ease', fill: 'forwards' }
+        );
+      }
     }
   }
 
