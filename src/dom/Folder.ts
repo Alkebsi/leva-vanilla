@@ -77,7 +77,7 @@ export default class Folder extends GUIContainer {
       );
 
       content.animate([{ opacity: currentOpacity }, { opacity: 1 }], {
-        duration: closeOnly ? 0 : 350,
+        duration: closeOnly ? 0 : 200,
         delay: closeOnly ? 0 : 200,
         easing: 'ease-out',
         fill: 'both',

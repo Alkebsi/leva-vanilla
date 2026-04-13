@@ -68,7 +68,11 @@ export default class GUI extends GUIContainer {
     input.placeholder = '[Open filter with CMD+SHIFT+L]';
     this._searchInput = input;
 
-    this._search.append(input);
+    const xBtn = document.createElement('i');
+    xBtn.innerHTML = icons.cross;
+    xBtn.id = 'leva__search-x-button';
+
+    this._search.append(input, xBtn);
 
     input.oninput = () => {
       window.clearTimeout(this._searchDebounceId);
@@ -76,14 +80,13 @@ export default class GUI extends GUIContainer {
         const query = String(input.value || '')
           .trim()
           .toLowerCase();
-
         const rows = this._rowCache;
 
         if (query === '') {
           rows.forEach((r) => (r.container.style.display = ''));
 
           const folders =
-            this._contentContainer.querySelectorAll('.leva-folder');
+            this._contentContainer.querySelectorAll('.leva__folder');
           folders.forEach((f) => ((f as HTMLElement).style.display = ''));
           this._adjustContainerHeight(true);
           return;
@@ -100,18 +103,19 @@ export default class GUI extends GUIContainer {
         });
 
         const folders = Array.from(
-          this._contentContainer.querySelectorAll('.leva-folder')
+          this._contentContainer.querySelectorAll('.leva__folder')
         ) as HTMLElement[];
 
-        folders.forEach((folder) => {
-          const content = folder.querySelector('.leva-folder-content');
+        folders.reverse().forEach((folder) => {
+          const content = folder.querySelector('.leva__folder-content');
           if (!content) return;
 
           const hasVisibleRow = !!content.querySelector(
             '.leva__row-container:not([style*="display: none"])'
           );
+
           const hasVisibleFolder = !!content.querySelector(
-            '.leva-folder:not([style*="display: none"])'
+            '.leva__folder:not([style*="display: none"])'
           );
 
           folder.style.display =
@@ -120,6 +124,15 @@ export default class GUI extends GUIContainer {
 
         this._adjustContainerHeight(true);
       }, this._searchDebounce);
+
+      if (input.value) xBtn.style.setProperty('visibility', 'visible');
+      else xBtn.style.setProperty('visibility', 'hidden');
+    };
+
+    xBtn.onclick = () => {
+      input.value = '';
+      input.dispatchEvent(new Event('input'));
+      input.focus();
     };
 
     this.leva.appendChild(this._search);
@@ -300,7 +313,7 @@ export default class GUI extends GUIContainer {
       this._opacityAnim = contentElem.animate(
         [{ opacity: currentOpacity }, { opacity: 1 }],
         {
-          duration: closeOnly ? 0 : 350,
+          duration: closeOnly ? 0 : 200,
           delay: 200,
           easing: 'ease-out',
           fill: 'both',
@@ -341,7 +354,7 @@ export default class GUI extends GUIContainer {
       this._opacityAnim = contentElem.animate(
         [{ opacity: currentOpacity }, { opacity: 0 }],
         {
-          duration: closeOnly ? 0 : 250,
+          duration: closeOnly ? 0 : 200,
           delay: 0,
           easing: 'ease-in',
           fill: 'forwards',
