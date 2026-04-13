@@ -5,7 +5,6 @@
   padding-right: var(--leva-space-md);
   color: var(--leva-colors-folderTextColor);
   user-select: none;
-  cursor: pointer;
   font-weight: var(--leva-fontWeights-folder);
 }
 
@@ -32,6 +31,7 @@
   cursor: pointer;
   height: var(--leva-sizes-folderTitleHeight);
   font-weight: var(--leva-fontWeights-folder);
+  cursor: pointer;
 }
 
 .leva__folder-header > svg {
