@@ -1,11 +1,13 @@
 # leva-vanilla
 
+![NPM Version](https://img.shields.io/npm/v/leva-vanilla?color=007bff&labelColor=333&style=flat-square)
+![Bundle Size](https://img.shields.io/bundlephobia/minzip/leva-vanilla?color=007bff&labelColor=333&style=flat-square)
+![Total Downloads](https://img.shields.io/npm/dt/leva-vanilla?color=007bff&labelColor=333&style=flat-square)
+![License](https://img.shields.io/npm/l/leva-vanilla?color=007bff&labelColor=333&style=flat-square)
+
 A lightweight, framework-agnostic control panel inspired by Leva — built for plain JavaScript.
 
 Tweak values in real-time without React, without dependencies.
-
-> [!IMPORTANT]
-> Work in progress — API may change.
 
 ## Why this exists
 
@@ -22,18 +24,13 @@ No framework. No overhead. Just controls.
 
 ## Features
 
-- Numeric, boolean, color, range, and text controls
+- Numeric, boolean, color, slider, and text controls
 - Live updates with `.onChange`
-- Type inference (based on value)
-- Add/remove controls at runtime
+- Follows the great dat.gui API
 - Minimal styling, easy to override
-- Small and dependency-free
-
----
+- Lightweight and dependency-free
 
 ## Installation
-
-_Not published yet_
 
 ```bash
 npm install leva-vanilla
@@ -83,7 +80,7 @@ gui.addColor(object, key)
 - Type is inferred from the value
 - Passing an object creates a select control
 
-### Folders (not ready yet)
+### Folders
 
 ```js
 const folder = gui.addFolder('Settings');
@@ -96,7 +93,7 @@ folder.add(params, 'speed');
 controller.onChange(fn);
 controller.set(value);
 controller.get();
-controller.name(label);
+controller.name('label');
 controller.listen();
 controller.destroy();
 ```
@@ -152,7 +149,7 @@ gui.destroy();
 - Keep it small, simple, and dependency-free
 
 > [!NOTE]
-> This project is still experimental. <br>
+> This project is still in early stages and talking any feedbacks. <br>
 > Expect:<br>
 >
 > - API changes<br>
