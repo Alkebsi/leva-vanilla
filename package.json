@@ -24,6 +24,7 @@
     "build": "tsc && vite build",
     "build:types": "tsc -p tsconfig.build.json",
     "preview": "vite preview",
+    "docs": "tsc && vite build --config vite.config.demo.ts",
     "prepare": "husky",
     "format": "prettier . --write",
     "lint": "eslint . --fix"
