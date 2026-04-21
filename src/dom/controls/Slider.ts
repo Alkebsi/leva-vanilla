@@ -2,11 +2,16 @@ import type NumericController from '../../core/NumericController';
 import Row from './Row';
 import { internalsOf } from '../../utils/types';
 import { displayDecimals, roundToStep, getStep } from '../../utils/math';
+import { generateId } from '../../utils/generateId';
 
 export default class Slider<O extends object, K extends keyof O> {
   constructor(container: HTMLElement, controller: NumericController<O, K>) {
     const isSlider =
       controller.minValue !== undefined && controller.maxValue !== undefined;
+
+    const internals = internalsOf(controller);
+    const key = String(internals.key);
+    const elementId = generateId(`leva_${key}`);
 
     const input = document.createElement('input');
     input.className = 'leva__input';
@@ -15,9 +20,8 @@ export default class Slider<O extends object, K extends keyof O> {
     input.autocomplete = 'off';
     input.spellcheck = false;
 
-    const internals = internalsOf(controller);
-    input.name = String(internals.key);
-    input.id = String(internals.key);
+    input.name = key;
+    input.id = elementId;
 
     const sync = () => {
       input.type = 'number';
@@ -79,9 +83,11 @@ export default class Slider<O extends object, K extends keyof O> {
       row.control.append(numberStepper, input);
     }
 
+    row.label.htmlFor = elementId;
+
     internals.onOptionsChange(sync);
     internals.onOptionsChange(() => {
-      row.label.textContent = internals.getName() || String(internals.key);
+      row.label.textContent = internals.getName() || key;
     });
 
     // Number stepper interaction

@@ -1,4 +1,5 @@
 import ActionController from '../../core/ActionController';
+import { generateId } from '../../utils/generateId';
 import { internalsOf } from '../../utils/types';
 import Row from './Row';
 
@@ -11,9 +12,10 @@ export default class Action<O extends object, K extends keyof O> {
 
     const internals = internalsOf(controller);
     const key = String(internals.key);
-    input.value = key;
+    const elementId = generateId(`leva_${key}`);
+
     input.name = key;
-    input.id = key;
+    input.id = elementId;
 
     const row = new Row(container, controller);
     row.control.append(input);
@@ -25,5 +27,17 @@ export default class Action<O extends object, K extends keyof O> {
         controller.trigger();
       };
     }
+
+    internals.onOptionsChange(() => {
+      input.value = internals.getName() || key;
+
+      input.disabled = internals.disabledValue;
+
+      if (internals.disabledValue) {
+        input.classList.add('disabled');
+      } else {
+        input.classList.remove('disabled');
+      }
+    });
   }
 }

@@ -2,6 +2,7 @@ import SelectController, {
   type SelectOptions,
 } from '../../core/SelectController';
 import icons from '../../icons';
+import { generateId } from '../../utils/generateId';
 import { internalsOf } from '../../utils/types';
 import Row from './Row';
 
@@ -19,15 +20,17 @@ export default class Select<O extends object, K extends keyof O> {
 
     const internals = internalsOf(controller);
     const key = String(internals.key);
+    const elementId = generateId(`leva_${key}`);
 
     select.name = key;
-    select.id = key;
+    select.id = elementId;
 
     const title = document.createElement('div');
     title.className = 'leva__input--title';
 
     const row = new Row(container, controller);
     row.control.classList.add('leva__control--select-parent');
+    row.label.htmlFor = elementId;
 
     const downArrowEl = document.createElement('div');
     downArrowEl.setAttribute('aria-hidden', 'true');

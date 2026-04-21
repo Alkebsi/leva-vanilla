@@ -12,6 +12,7 @@ export interface ControllerInternals<O extends object, K extends keyof O> {
   onOptionsChange(fn: () => void): void;
   getName(): string | undefined;
   key: K;
+  disabledValue: boolean;
 }
 
 export function internalsOf<O extends object, K extends keyof O>(

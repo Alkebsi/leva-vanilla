@@ -1,5 +1,6 @@
 import type BooleanController from '../../core/BooleanController';
 import icons from '../../icons';
+import { generateId } from '../../utils/generateId';
 import { internalsOf } from '../../utils/types';
 import Row from './Row';
 
@@ -9,10 +10,13 @@ export default class Checkbox<O extends object, K extends keyof O> {
     input.type = 'checkbox';
 
     const internals = internalsOf(controller);
+    const elementId = generateId(`leva__${String(internals.key)}`);
+    const key = String(internals.key);
+
     input.className = 'leva__input';
     input.classList.toggle('leva__input--checkbox');
-    input.name = String(internals.key);
-    input.id = String(internals.key);
+    input.name = key;
+    input.id = elementId;
 
     const domReplacement = document.createElement('label');
     domReplacement.className = 'leva__input--checkbox-label';
@@ -26,13 +30,14 @@ export default class Checkbox<O extends object, K extends keyof O> {
 
     const row = new Row(container, controller);
     row.control.classList.add('leva__control--checkbox-parent');
+    row.label.htmlFor = elementId;
     row.control.append(input);
 
-    domReplacement.htmlFor = String(internals.key);
+    domReplacement.htmlFor = elementId;
     row.control.append(domReplacement);
 
     internals.onOptionsChange(() => {
-      row.label.textContent = internals.getName() || String(internals.key);
+      row.label.textContent = internals.getName() || key;
     });
   }
 }

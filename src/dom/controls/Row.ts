@@ -45,7 +45,6 @@ export default class Row<O extends object, K extends keyof O> {
     };
 
     this.label.textContent = name;
-    this.label.htmlFor = name;
     this.labelContainer.append(this.label, this.clipboardBtn);
 
     this.element.append(this.labelContainer, this.control);

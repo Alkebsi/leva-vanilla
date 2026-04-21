@@ -3,11 +3,13 @@ import Row from './Row';
 
 import { normalizedToHex, parseColor } from '../../utils/color';
 import { internalsOf } from '../../utils/types';
+import { generateId } from '../../utils/generateId';
 
 export default class Color<O extends object, K extends keyof O> {
   constructor(container: HTMLElement, controller: ColorController<O, K>) {
     const internals = internalsOf(controller);
     const key = String(internals.key);
+    const elementId = generateId(`leva_${key}`);
 
     // inputs
     const text = document.createElement('input');
@@ -20,10 +22,10 @@ export default class Color<O extends object, K extends keyof O> {
     picker.className = 'leva__input leva__input--color-picker';
 
     text.name = key;
-    text.id = key;
+    text.id = elementId;
 
     picker.name = key;
-    picker.id = key + '_picker';
+    picker.id = generateId(`leva_${key + '_picker'}`);
 
     text.autocomplete = 'off';
     text.spellcheck = false;
@@ -36,6 +38,7 @@ export default class Color<O extends object, K extends keyof O> {
 
     const row = new Row(container, controller);
     row.control.classList.add('leva__control--color-parent');
+    row.label.htmlFor = elementId;
 
     const secondaryControl = row.control.cloneNode() as HTMLDivElement;
     secondaryControl.classList.replace(

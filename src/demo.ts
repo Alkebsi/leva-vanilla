@@ -6,10 +6,13 @@ const controls = {
   steppedNumber: 0,
   slider: 0.5,
   steppedSlider: 0.5,
-  checkbox: false,
   selection: 'option 3',
   NamedSelection: 'S',
   color: '#ff0062',
+  checkbox: false,
+  button: () => {
+    alert('The button works as expected!');
+  },
 };
 
 // Rendering the result to HTML
@@ -24,7 +27,13 @@ const update = (key?: string) => {
   codeText.innerHTML = `const controls = {\n${keys
     .map((k) => {
       const isLast = keys[keys.length - 1] === k;
-      const value = JSON.stringify(controls[k as keyof typeof controls]);
+      const rawValue = controls[k as keyof typeof controls];
+
+      const value =
+        typeof rawValue === 'function'
+          ? rawValue.toString()
+          : JSON.stringify(rawValue);
+
       return `  <span id="l-${k}" class="control-line">  ${k}: ${value}${isLast ? '' : ','}</span>`;
     })
     .join('\n')}\n};`;
@@ -74,3 +83,6 @@ nestedFolders2
   })
   .onChange(() => update('NamedSelection'));
 nestedFolders2.addColor(controls, 'color').onChange(() => update('color'));
+
+gui.add(controls, 'button').name('Test Button');
+gui.add(controls, 'button').name('Disabled Button').disable();
