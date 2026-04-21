@@ -134,6 +134,7 @@ export default class Folder extends GUIContainer {
 
   close() {
     this._toggle(true);
+    return this;
   }
 
   destroy() {
