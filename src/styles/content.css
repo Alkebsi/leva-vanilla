@@ -5,6 +5,8 @@
   overflow: auto;
   max-height: calc(100vh - 20px - var(--leva--titleBarHeight));
   transition: height 300ms;
+  scrollbar-width: thin;
+  scrollbar-color: var(--leva-colors-elevation3) transparent;
 }
 
 .leva__content {
