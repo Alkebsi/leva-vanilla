@@ -90,6 +90,44 @@ export default class Slider<O extends object, K extends keyof O> {
       row.label.textContent = internals.getName() || key;
     });
 
+    // Scroll-based control
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+
+      const baseStep = getStep(controller.stepValue);
+      const current = Number(controller.get());
+
+      const direction = e.deltaY < 0 ? 1 : -1;
+
+      let multiplier = 1;
+      if (e.shiftKey) {
+        multiplier = 10;
+      } else if (e.altKey) {
+        multiplier = 0.1;
+      }
+
+      const delta = direction * baseStep * multiplier;
+      const newValue = current + delta;
+
+      let clampedValue = newValue;
+      if (controller.minValue !== undefined)
+        clampedValue = Math.max(clampedValue, controller.minValue);
+      if (controller.maxValue !== undefined)
+        clampedValue = Math.min(clampedValue, controller.maxValue);
+
+      const finalValue = roundToStep(clampedValue, baseStep * multiplier);
+
+      controller.set(finalValue as O[K]);
+    };
+
+    const scrollTargets = isSlider
+      ? [domReplacement, input]
+      : [numberStepper, input];
+
+    scrollTargets.forEach((target) => {
+      target.addEventListener('wheel', handleWheel, { passive: false });
+    });
+
     // Number stepper interaction
     numberStepper.onpointerdown = () => {
       numberStepper.requestPointerLock();
@@ -179,12 +217,14 @@ export default class Slider<O extends object, K extends keyof O> {
     const originalDestroy = ctrl.destroy.bind(ctrl);
     ctrl.destroy = () => {
       domReplacement.removeEventListener('pointerdown', onPointerDown);
-
       domReplacement.onpointermove = null;
       domReplacement.onpointerup = null;
-
       numberStepper.onpointerdown = null;
       document.removeEventListener('pointerlockchange', onPointerLockChange);
+
+      scrollTargets.forEach((target) => {
+        target.removeEventListener('wheel', handleWheel);
+      });
 
       originalDestroy();
     };
