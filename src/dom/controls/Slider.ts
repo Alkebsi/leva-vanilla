@@ -1,260 +1,249 @@
 import type NumericController from '../../core/NumericController';
 import Row from './Row';
-import { internalsOf } from '../../utils/types';
+import { internalsOf, type ControllerInternals } from '../../utils/types';
 import { displayDecimals, roundToStep, getStep } from '../../utils/math';
 import { generateId } from '../../utils/generateId';
 
 export default class Slider<O extends object, K extends keyof O> {
+  private readonly _controller: NumericController<O, K>;
+  private readonly _input: HTMLInputElement;
+  private readonly _domReplacement: HTMLDivElement;
+  private readonly _numberStepper: HTMLDivElement;
+  private readonly _scrollTargets: HTMLElement[];
+  private readonly _isSlider: boolean;
+
   constructor(container: HTMLElement, controller: NumericController<O, K>) {
-    const isSlider =
+    this._controller = controller;
+    this._isSlider =
       controller.minValue !== undefined && controller.maxValue !== undefined;
 
     const internals = internalsOf(controller);
     const key = String(internals.key);
     const elementId = generateId(`leva_${key}`);
 
-    const input = document.createElement('input');
-    input.className = 'leva__input';
+    this._input = document.createElement('input');
+    this._input.className = 'leva__input';
+    this._input.value = String(controller.get());
+    this._input.autocomplete = 'off';
+    this._input.spellcheck = false;
+    this._input.name = key;
+    this._input.id = elementId;
 
-    input.value = String(controller.get());
-    input.autocomplete = 'off';
-    input.spellcheck = false;
-
-    input.name = key;
-    input.id = elementId;
-
-    const sync = () => {
-      input.type = 'number';
-      if (isSlider) {
-        input.classList.add('leva__input--slider');
-      } else {
-        input.classList.add('leva__input--number');
-      }
-
-      if (controller.minValue !== undefined)
-        input.min = String(controller.minValue);
-      if (controller.maxValue !== undefined)
-        input.max = String(controller.maxValue);
-
-      input.step = String(getStep(controller.stepValue));
-    };
-    sync();
-
-    input.oninput = () => {
-      controller.set(Number(input.value) as O[K]);
-    };
-
-    // Slider DOM
-    const domReplacement = document.createElement('div');
-    domReplacement.className = 'leva__slider';
-
+    this._domReplacement = document.createElement('div');
+    this._domReplacement.className = 'leva__slider';
     const sliderTrack = document.createElement('div');
     sliderTrack.className = 'leva__slider--track';
-
     const sliderProgress = document.createElement('div');
     sliderProgress.className = 'leva__slider--progress';
-
     const sliderThumb = document.createElement('div');
     sliderThumb.className = 'leva__slider--thumb';
-
     sliderTrack.append(sliderProgress);
-    domReplacement.append(sliderTrack, sliderThumb);
+    this._domReplacement.append(sliderTrack, sliderThumb);
 
-    // Number DOM
-    const numberStepper = document.createElement('div');
-    numberStepper.className = 'leva__number--stepper';
-    numberStepper.innerHTML = 'V';
+    this._numberStepper = document.createElement('div');
+    this._numberStepper.className = 'leva__number--stepper';
+    this._numberStepper.innerHTML = 'V';
 
     const row = new Row(container, controller);
-
-    if (isSlider) {
+    if (this._isSlider) {
       row.control.classList.add('leva__control--slider-parent');
-
-      const secondaryControl = row.control.cloneNode() as HTMLDivElement;
-      secondaryControl.classList.replace(
+      const secondary = row.control.cloneNode() as HTMLDivElement;
+      secondary.classList.replace(
         'leva__control--slider-parent',
         'leva__control--secondary-number'
       );
-      secondaryControl.appendChild(input);
-
-      row.control.append(domReplacement, secondaryControl);
+      secondary.appendChild(this._input);
+      row.control.append(this._domReplacement, secondary);
     } else {
       row.control.classList.add('leva__control--number-parent');
-      row.control.append(numberStepper, input);
+      row.control.append(this._numberStepper, this._input);
     }
 
     row.label.htmlFor = elementId;
+    this._scrollTargets = this._isSlider
+      ? [this._domReplacement, this._input]
+      : [this._numberStepper, this._input];
 
-    internals.onOptionsChange(sync);
-    internals.onOptionsChange(() => {
-      row.label.textContent = internals.getName() || key;
-    });
+    this._attachEventListeners(internals, key);
+    this._sync();
+    this._syncFromController();
 
-    // Scroll-based control
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-
-      const baseStep = getStep(controller.stepValue);
-      const current = Number(controller.get());
-
-      const direction = e.deltaY < 0 ? 1 : -1;
-
-      let multiplier = 1;
-      if (e.shiftKey) {
-        multiplier = 10;
-      } else if (e.altKey) {
-        multiplier = 0.1;
-      }
-
-      const delta = direction * baseStep * multiplier;
-      const newValue = current + delta;
-
-      let clampedValue = newValue;
-      if (controller.minValue !== undefined)
-        clampedValue = Math.max(clampedValue, controller.minValue);
-      if (controller.maxValue !== undefined)
-        clampedValue = Math.min(clampedValue, controller.maxValue);
-
-      const finalValue = roundToStep(clampedValue, baseStep * multiplier);
-
-      controller.set(finalValue as O[K]);
-    };
-
-    const scrollTargets = isSlider
-      ? [domReplacement, input]
-      : [numberStepper, input];
-
-    scrollTargets.forEach((target) => {
-      target.addEventListener('wheel', handleWheel, { passive: false });
-    });
-
-    // Number stepper interaction
-    numberStepper.onpointerdown = () => {
-      numberStepper.requestPointerLock();
-      numberStepper.classList.add('leva__number--stepper-dragging');
-
-      const BASE_SENSITIVITY = 0.1; // pixels -> fraction of step
-      let acc = 0;
-
-      const onPointerMove = (moveEvent: PointerEvent) => {
-        const step = getStep(controller.stepValue);
-        const current = Number(controller.get());
-        const fine = moveEvent.shiftKey ? 0.1 : 1;
-        const sens = BASE_SENSITIVITY * fine;
-        acc += moveEvent.movementX * sens;
-
-        const deltaValue = acc * step;
-        const newValue = roundToStep(current + deltaValue, step);
-        if (newValue !== current) {
-          controller.set(newValue as O[K]);
-          acc = 0;
-        }
-      };
-
-      const onPointerUp = () => {
-        document.exitPointerLock();
-        numberStepper.classList.remove('leva__number--stepper-dragging');
-        document.removeEventListener('pointermove', onPointerMove);
-        document.removeEventListener('pointerup', onPointerUp);
-      };
-
-      document.addEventListener('pointermove', onPointerMove);
-      document.addEventListener('pointerup', onPointerUp);
-    };
-
-    const onPointerLockChange = () => {
-      if (document.pointerLockElement !== numberStepper) {
-        numberStepper.classList.remove('leva__number--stepper-dragging');
-      }
-    };
-    document.addEventListener('pointerlockchange', onPointerLockChange);
-
-    // Slider interaction
-    const sliderInteract = (e: PointerEvent, slider: HTMLElement) => {
-      const rect = slider.getBoundingClientRect();
-      const buffer = 5;
-      const availableWidth = rect.width - buffer * 2;
-
-      const updateValue = (moveEvent: PointerEvent) => {
-        const pointerX = moveEvent.clientX - rect.left - buffer;
-        const x = Math.min(Math.max(pointerX / availableWidth, 0), 1);
-
-        const min = controller.minValue ?? 0;
-        const max = controller.maxValue ?? 1;
-        const step = getStep(controller.stepValue);
-
-        const raw = min + x * (max - min);
-        const value = step > 0 ? roundToStep(raw, step) : raw;
-        controller.set(value as O[K]);
-
-        const uiValueRaw = max - min === 0 ? 0 : (value - min) / (max - min);
-        const uiValue = Math.min(Math.max(uiValueRaw, 0), 1);
-
-        slider.style.setProperty('--percent', `${uiValue * 100}%`);
-        slider.style.setProperty('--raw-x', `${uiValue}`);
-
-        const decimals = displayDecimals(Number(value), step);
-        input.value = Number(value).toFixed(decimals);
-      };
-
-      slider.setPointerCapture(e.pointerId);
-      updateValue(e);
-
-      slider.onpointermove = updateValue;
-
-      slider.onpointerup = () => {
-        slider.releasePointerCapture(e.pointerId);
-        slider.onpointermove = null;
-        slider.onpointerup = null;
-      };
-    };
-
-    const onPointerDown = (e: PointerEvent) =>
-      sliderInteract(e, domReplacement);
-    domReplacement.addEventListener('pointerdown', onPointerDown);
-
-    const ctrl = controller as unknown as { destroy: () => void };
+    const ctrl = controller;
     const originalDestroy = ctrl.destroy.bind(ctrl);
     ctrl.destroy = () => {
-      domReplacement.removeEventListener('pointerdown', onPointerDown);
-      domReplacement.onpointermove = null;
-      domReplacement.onpointerup = null;
-      numberStepper.onpointerdown = null;
-      document.removeEventListener('pointerlockchange', onPointerLockChange);
-
-      scrollTargets.forEach((target) => {
-        target.removeEventListener('wheel', handleWheel);
-      });
-
+      this._detachEventListeners();
       originalDestroy();
     };
+  }
 
-    const syncFromController = () => {
-      const value = Number(controller.get());
+  private _attachEventListeners(
+    internals: ControllerInternals<O, K>,
+    key: string
+  ) {
+    this._input.oninput = () =>
+      this._controller.set(Number(this._input.value) as O[K]);
+    this._input.addEventListener('keydown', this._handleKeydown);
+    this._domReplacement.addEventListener(
+      'pointerdown',
+      this._handleSliderPointerDown
+    );
+    this._numberStepper.onpointerdown = this._handleStepperPointerDown;
+    this._scrollTargets.forEach((t) =>
+      t.addEventListener('wheel', this._handleWheel, { passive: false })
+    );
 
-      if (!isSlider) {
-        const step = controller.stepValue ?? 0.01;
+    document.addEventListener('pointerlockchange', this._onPointerLockChange);
+    internals.onOptionsChange(this._sync);
+    internals.onOptionsChange(() => {
+      const rowLabel = this._input
+        .closest('.leva__row')
+        ?.querySelector('label');
+      if (rowLabel) rowLabel.textContent = internals.getName() || key;
+    });
 
-        const decimals = value < 0 ? 2 : displayDecimals(value, step);
-        input.value = value.toFixed(decimals);
-        return;
+    this._controller.onChange(this._syncFromController);
+  }
+
+  private _detachEventListeners() {
+    this._domReplacement.removeEventListener(
+      'pointerdown',
+      this._handleSliderPointerDown
+    );
+    this._input.removeEventListener('keydown', this._handleKeydown);
+    this._scrollTargets.forEach((t) =>
+      t.removeEventListener('wheel', this._handleWheel)
+    );
+    document.removeEventListener(
+      'pointerlockchange',
+      this._onPointerLockChange
+    );
+    this._numberStepper.onpointerdown = null;
+    this._input.oninput = null;
+  }
+
+  private _sync = () => {
+    this._input.type = 'number';
+    this._input.classList.toggle('leva__input--slider', this._isSlider);
+    this._input.classList.toggle('leva__input--number', !this._isSlider);
+    if (this._controller.minValue !== undefined)
+      this._input.min = String(this._controller.minValue);
+    if (this._controller.maxValue !== undefined)
+      this._input.max = String(this._controller.maxValue);
+    this._input.step = String(getStep(this._controller.stepValue));
+  };
+
+  private _syncFromController = () => {
+    const value = Number(this._controller.get());
+    const step = getStep(this._controller.stepValue);
+
+    if (!this._isSlider) {
+      this._input.value = value.toFixed(
+        value < 0 ? 2 : displayDecimals(value, step)
+      );
+      return;
+    }
+
+    const min = this._controller.minValue ?? 0;
+    const max = this._controller.maxValue ?? 1;
+    const x =
+      max - min === 0
+        ? 0
+        : Math.min(Math.max((value - min) / (max - min), 0), 1);
+
+    this._domReplacement.style.setProperty('--percent', `${x * 100}%`);
+    this._domReplacement.style.setProperty('--raw-x', `${x}`);
+    this._input.value = value.toFixed(displayDecimals(value, step));
+  };
+
+  private _updateValueByStep(direction: number, multiplier: number) {
+    const baseStep = getStep(this._controller.stepValue);
+    const current = Number(this._controller.get());
+    const delta = direction * baseStep * multiplier;
+    let newValue = current + delta;
+
+    if (this._controller.minValue !== undefined)
+      newValue = Math.max(newValue, this._controller.minValue);
+    if (this._controller.maxValue !== undefined)
+      newValue = Math.min(newValue, this._controller.maxValue);
+
+    this._controller.set(roundToStep(newValue, baseStep * multiplier) as O[K]);
+  }
+
+  private _handleWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    const multiplier = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
+    this._updateValueByStep(e.deltaY < 0 ? 1 : -1, multiplier);
+  };
+
+  private _handleKeydown = (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const multiplier = e.shiftKey ? 10 : e.altKey ? 0.1 : 1;
+    this._updateValueByStep(e.key === 'ArrowUp' ? 1 : -1, multiplier);
+  };
+
+  private _handleStepperPointerDown = () => {
+    this._numberStepper.requestPointerLock();
+    this._numberStepper.classList.add('leva__number--stepper-dragging');
+    const BASE_SENSITIVITY = 0.1;
+    let acc = 0;
+
+    const onPointerMove = (e: PointerEvent) => {
+      const step = getStep(this._controller.stepValue);
+      const sens = BASE_SENSITIVITY * (e.shiftKey ? 0.1 : 1);
+      acc += e.movementX * sens;
+      const deltaValue = acc * step;
+      const newValue = roundToStep(
+        Number(this._controller.get()) + deltaValue,
+        step
+      );
+      if (newValue !== Number(this._controller.get())) {
+        this._controller.set(newValue as O[K]);
+        acc = 0;
       }
-
-      const min = controller.minValue ?? 0;
-      const max = controller.maxValue ?? 1;
-
-      const step = getStep(controller.stepValue);
-      const x = max - min === 0 ? 0 : (value - min) / (max - min);
-      const clampedX = Math.min(Math.max(x, 0), 1);
-
-      domReplacement.style.setProperty('--percent', `${clampedX * 100}%`);
-      domReplacement.style.setProperty('--raw-x', `${clampedX}`);
-
-      const decimals = displayDecimals(value, step);
-      input.value = value.toFixed(decimals);
     };
 
-    controller.onChange(syncFromController);
-    syncFromController();
-  }
+    const onPointerUp = () => {
+      document.exitPointerLock();
+      this._numberStepper.classList.remove('leva__number--stepper-dragging');
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', onPointerUp);
+    };
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
+  };
+
+  private _handleSliderPointerDown = (e: PointerEvent) => {
+    const rect = this._domReplacement.getBoundingClientRect();
+    const buffer = 5;
+    const availableWidth = rect.width - buffer * 2;
+
+    const update = (moveEvent: PointerEvent) => {
+      const x = Math.min(
+        Math.max((moveEvent.clientX - rect.left - buffer) / availableWidth, 0),
+        1
+      );
+      const min = this._controller.minValue ?? 0;
+      const max = this._controller.maxValue ?? 1;
+      const step = getStep(this._controller.stepValue);
+      const raw = min + x * (max - min);
+      this._controller.set((step > 0 ? roundToStep(raw, step) : raw) as O[K]);
+    };
+
+    this._domReplacement.setPointerCapture(e.pointerId);
+    update(e);
+    this._domReplacement.onpointermove = update;
+    this._domReplacement.onpointerup = () => {
+      this._domReplacement.releasePointerCapture(e.pointerId);
+      this._domReplacement.onpointermove = null;
+      this._domReplacement.onpointerup = null;
+    };
+  };
+
+  private _onPointerLockChange = () => {
+    if (document.pointerLockElement !== this._numberStepper) {
+      this._numberStepper.classList.remove('leva__number--stepper-dragging');
+    }
+  };
 }
