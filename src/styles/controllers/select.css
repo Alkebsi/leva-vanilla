@@ -37,15 +37,11 @@
   position: fixed;
   font-family: var(--leva-fonts-mono);
   font-size: var(--leva-fontSizes-root);
-
   background: var(--leva-colors-elevation3);
   border-radius: var(--leva-radii-sm);
-
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-
   max-height: 200px;
   overflow-y: auto;
-
   z-index: 99999;
 
   scrollbar-width: thin;

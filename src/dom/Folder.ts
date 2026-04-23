@@ -50,6 +50,9 @@ export default class Folder extends GUIContainer {
     const currentHeight = content.getBoundingClientRect().height;
     const currentOpacity = window.getComputedStyle(content).opacity;
 
+    content.getAnimations().forEach((anim) => anim.cancel());
+    if (this._iconAnim) this._iconAnim.cancel();
+
     let currentRotation = wasOpen ? 0 : -90;
     if (headerIcon) {
       const style = window.getComputedStyle(headerIcon);
@@ -63,12 +66,12 @@ export default class Folder extends GUIContainer {
       }
     }
 
-    content.getAnimations().forEach((anim) => anim.cancel());
-    this._iconAnim?.cancel();
-
     if (this.isOpen) {
       content.style.display = '';
       content.style.overflow = 'hidden';
+
+      void content.offsetHeight;
+
       const fullHeight = content.scrollHeight;
 
       this._heightAnim = content.animate(
@@ -87,6 +90,8 @@ export default class Folder extends GUIContainer {
         if (this.isOpen) {
           content.style.height = 'auto';
           content.style.overflow = '';
+          this._heightAnim?.cancel();
+          this._heightAnim = undefined;
         }
       };
 
@@ -118,6 +123,7 @@ export default class Folder extends GUIContainer {
         }
         content.style.overflow = '';
         this._heightAnim?.cancel();
+        this._heightAnim = undefined;
       };
 
       if (headerIcon) {
