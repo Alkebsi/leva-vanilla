@@ -4,7 +4,7 @@
 @import './content.css';
 @import './folder.css';
 
-@import './controllers/action.css';
+@import './controllers/button.css';
 @import './controllers/checkbox.css';
 @import './controllers/color.css';
 @import './controllers/select.css';

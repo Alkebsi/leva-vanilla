@@ -5,30 +5,22 @@
 ![Total Downloads](https://img.shields.io/npm/dt/leva-vanilla?color=007bff&labelColor=333&style=flat-square)
 ![License](https://img.shields.io/npm/l/leva-vanilla?color=007bff&labelColor=333&style=flat-square)
 
-A lightweight, framework-agnostic control panel inspired by Leva — built for plain JavaScript.
+A lightweight, framework-agnostic control panel with a reactive, schema-based API.
 
 Tweak values in real-time without React, without dependencies.
 
-## Why this exists
+## Why
 
-Leva is great — but tied to React.
+Most GUI libraries fall into one of two categories:
 
-`leva-vanilla` brings the same idea to:
+- Simple but limited (dat.gui, lil-gui)
+- Powerful but tied to frameworks (Leva)
 
-- plain JavaScript
-- small projects
-- custom tools
-- creative coding setups
+leva-vanilla aims to combine both:
 
-No framework. No overhead. Just controls.
-
-## Features
-
-- Numeric, boolean, color, slider, and text controls
-- Live updates with `.onChange`
-- Follows the great dat.gui API
-- Minimal styling, easy to override
-- Lightweight and dependency-free
+- ✅ Works in plain JavaScript
+- ✅ Reactive state without a framework
+- ✅ Scales cleanly as your UI grows
 
 ## Installation
 
@@ -39,119 +31,127 @@ npm install leva-vanilla
 ## Quick Start
 
 ```js
-import GUI from 'leva-vanilla';
+import { leva } from 'leva-vanilla';
 
-const gui = new GUI();
-
-const params = {
-  speed: 1,
-  enabled: true,
+const controls = leva({
+  positionX: { value: 1, min: 0, max: 10 },
   color: '#ff0000',
-  label: 'hello',
-};
+});
 
-gui.add(params, 'speed', 0, 10, 0.1).onChange((v) => console.log('speed', v));
+controls.effect(() => {
+  element.style.background = controls.color;
+  mesh.position.x = controls.positionX;
+});
+```
 
-gui.add(params, 'enabled').onChange((v) => console.log('enabled', v));
+No `.onChange`, no manual wiring.
 
-gui.addColor(params, 'color').onChange((v) => console.log('color', v));
+## Core Idea
 
-gui.add(params, 'label').onChange((v) => console.log('label', v));
+Controls are just reactive state.
+
+```js
+controls.positionX = 5;
+console.log(controls.positionX);
+```
+
+Use `effect()` to react to changes:
+
+```js
+controls.effect(() => {
+  console.log(controls.positionX);
+});
 ```
 
 ## API
 
-### Create GUI
+### Create controls
 
 ```js
-const gui = new GUI(container?);
+const controls = leva(schema, options?)
 ```
 
-- `container` defaults to `document.body`
+---
 
-### Add Controls
+### Schema
+
+#### Primitive values
 
 ```js
-gui.add(object, key, min?, max?, step?)
-gui.add(object, key, options)
-gui.addColor(object, key)
+const controls = leva({
+  speed: 1,
+  enabled: true,
+  label: 'hello',
+});
 ```
 
-- Type is inferred from the value
-- Passing an object creates a select control
+---
 
-### Folders
+#### Descriptors
 
 ```js
-const folder = gui.addFolder('Settings');
-folder.add(params, 'speed');
+const controls = leva({
+  speed: { value: 1, min: 0, max: 10, step: 0.1 },
+});
 ```
 
-### Controller Methods
+---
 
-```ts
-controller.onChange(fn);
-controller.set(value);
-controller.get();
-controller.name('label');
-controller.listen();
-controller.destroy();
+#### Select
+
+```js
+const controls = leva({
+  mode: ['a', 'b', 'c'],
+});
 ```
 
-### GUI Methods
+---
 
-```ts
-gui.update();
-gui.destroy();
+#### Color (Not Ready)
+
+```js
+const controls = leva({
+  color: '#ff0000',
+});
 ```
 
-## Design Philosophy
+---
 
-- Object-first API — like dat.gui
-- No magic state — your object is the source
-- Framework-agnostic — works anywhere, can be wrapped for React/Vue/... you name it!
-- Composable internals — controllers are independent units
+#### Folder (WIP)
 
-## Example (Vanilla HTML)
-
-```html
-<!doctype html>
-<html>
-  <body>
-    <script type="module">
-      import GUI from 'leva-vanilla';
-
-      const gui = new GUI();
-
-      const params = {
-        rotation: 45,
-        visible: true,
-      };
-
-      const rot = gui.add(params, 'rotation', 0, 360, 1).onChange((v) => {
-        document.body.style.transform = `rotate(${v}deg)`;
-      });
-
-      gui.add(params, 'visible').onChange((v) => {
-        document.body.style.opacity = v ? 1 : 0.5;
-      });
-
-      setTimeout(() => rot.set(90), 1000);
-    </script>
-  </body>
-</html>
+```js
+const controls = leva({
+  Settings: {
+    speed: 1,
+    enabled: true,
+    $: {
+      title: 'Folder_Name',
+      collapsed: true,
+    },
+  },
+});
 ```
+
+---
+
+### Reactivity
+
+```js
+const cleanup = controls.effect(() => {
+  console.log(controls.speed);
+});
+
+// stop the effect
+cleanup();
+```
+
+## Philosophy
+
+- State-first API
+- Minimal surface area
+- No framework required
+- Designed to scale
 
 ## Contributing
 
-- Open issues for bugs or ideas
-- PRs are welcome
-- Keep it small, simple, and dependency-free
-
-> [!NOTE]
-> This project is still in early stages and talking any feedbacks. <br>
-> Expect:<br>
->
-> - API changes<br>
-> - Internal refactors<br>
-> - Breaking updates
+Feedback and ideas are welcome — especially around API design and developer experience.

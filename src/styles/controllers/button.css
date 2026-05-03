@@ -3,6 +3,10 @@
   column-gap: none;
 }
 
+.leva__row--button > .leva__control:hover {
+  box-shadow: none;
+}
+
 .leva__input--button {
   color: var(--leva-colors-highlight3);
   background-color: var(--leva-colors-accent2);

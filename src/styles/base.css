@@ -8,12 +8,12 @@
   background-color: var(--leva-colors-elevation1);
 }
 
-.leva__base--flat-false {
+.leva__base {
   border-radius: var(--leva-radii-lg);
   box-shadow: var(--leva-shadows-level1);
 }
 
-.leva__base--fill-false {
+.leva__base {
   position: fixed;
   top: 10px;
   right: 10px;
