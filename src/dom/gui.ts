@@ -1,21 +1,17 @@
 import '../styles/index.css';
-import { createHeader } from './header';
+import { createHeader, setupHeaderInteractivity } from './header';
 import type { Controls } from './types';
 import { createNumberInput } from './controls/number';
 import { createBooleanInput } from './controls/boolean';
 import { createSelectInput } from './controls/select';
 import { createButtonInput } from './controls/button';
-import type {
-  NumberController,
-  BooleanController,
-  SelectController,
-  ButtonController,
-} from '../core/types';
+import type { AnyController } from '../core/types';
 
 export function mountDOM(controls: Controls) {
   const gui = createGUIRoot();
 
   renderControls(controls, gui.content);
+  setupHeaderInteractivity(gui);
 
   return gui;
 }
@@ -25,18 +21,31 @@ export function createGUIRoot(parent: HTMLElement = document.body) {
   root.id = 'leva__root';
 
   const base = document.createElement('div');
-  base.className = 'leva__base';
+  base.className = 'leva__base leva__base--fill-false leva__base--flat-false';
 
   const header = createHeader();
   const content = document.createElement('div');
   content.className = 'leva__content';
 
+  const searchBar = document.createElement('div');
+  searchBar.className = 'leva__search';
+  const searchInput = document.createElement('input');
+  searchInput.placeholder = '[Open filter with CMD+SHIFT+L]';
+  searchInput.name = 'leva__search-input';
+  searchInput.id = 'leva__search-input';
+  searchBar.appendChild(searchInput);
+  // Start collapsed
+  searchBar.style.height = '0px';
+
   const contentContainer = document.createElement('div');
   contentContainer.className = 'leva__content-container';
   contentContainer.append(content);
 
-  base.appendChild(header);
-  base.appendChild(contentContainer);
+  requestAnimationFrame(() => {
+    contentContainer.style.setProperty('height', 'auto');
+  });
+
+  base.append(header, searchBar, contentContainer);
   root.appendChild(base);
   parent.appendChild(root);
 
@@ -44,38 +53,33 @@ export function createGUIRoot(parent: HTMLElement = document.body) {
     root,
     base,
     header,
+    searchBar,
     content,
+    contentContainer,
   };
 }
 
 function renderControls(controls: Controls, container: HTMLElement) {
   const controllers = controls._controllers;
 
-  for (const key in controllers) {
-    const controller = controllers[key];
-
-    if (controller.type === 'number') {
-      container.appendChild(
-        createNumberInput(key, controller as NumberController)
-      );
+  Object.keys(controllers).forEach((key) => {
+    const controller = controllers[key] as AnyController;
+    switch (controller.type) {
+      case 'number':
+        container.appendChild(createNumberInput(key, controller));
+        break;
+      case 'boolean':
+        container.appendChild(createBooleanInput(key, controller));
+        break;
+      case 'select':
+        container.appendChild(createSelectInput(key, controller));
+        break;
+      case 'button':
+        container.appendChild(createButtonInput(key, controller));
+        break;
+      default:
+        console.warn(`[leva] No renderer found for key: ${key}`);
+        break;
     }
-
-    if (controller.type === 'boolean') {
-      container.appendChild(
-        createBooleanInput(key, controller as BooleanController)
-      );
-    }
-
-    if (controller.type === 'select') {
-      container.appendChild(
-        createSelectInput(key, controller as SelectController)
-      );
-    }
-
-    if (controller.type === 'button') {
-      container.appendChild(
-        createButtonInput(key, controller as ButtonController)
-      );
-    }
-  }
+  });
 }

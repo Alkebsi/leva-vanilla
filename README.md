@@ -71,8 +71,6 @@ controls.effect(() => {
 const controls = leva(schema, options?)
 ```
 
----
-
 ### Schema
 
 #### Primitive values
@@ -85,8 +83,6 @@ const controls = leva({
 });
 ```
 
----
-
 #### Descriptors
 
 ```js
@@ -94,8 +90,6 @@ const controls = leva({
   speed: { value: 1, min: 0, max: 10, step: 0.1 },
 });
 ```
-
----
 
 #### Select
 
@@ -105,8 +99,6 @@ const controls = leva({
 });
 ```
 
----
-
 #### Color (Not Ready)
 
 ```js
@@ -114,8 +106,6 @@ const controls = leva({
   color: '#ff0000',
 });
 ```
-
----
 
 #### Folder (WIP)
 
@@ -131,8 +121,6 @@ const controls = leva({
   },
 });
 ```
-
----
 
 ### Reactivity
 
