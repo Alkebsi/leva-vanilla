@@ -142,26 +142,21 @@ export function createNumberInput(key: string, controller: NumberController) {
     const onMove = (ev: PointerEvent) => {
       const baseStep = getStep(controller.step);
       const multiplier = getMultiplier(ev);
-
       const effectiveStep = baseStep * multiplier;
-
       acc += ev.movementX;
 
       const STEP_PIXEL_RATIO = 10;
-      const steps = acc / STEP_PIXEL_RATIO;
+      const numSteps = Math.trunc(acc / STEP_PIXEL_RATIO);
 
-      if (Math.abs(steps) >= 1) {
-        const direction = Math.sign(steps);
-
+      if (numSteps !== 0) {
         const next = clamp(
-          controller.value + direction * effectiveStep,
+          controller.value + numSteps * effectiveStep,
           controller.min,
           controller.max
         );
 
         controller.set(roundToStep(next, effectiveStep));
-
-        acc -= direction * STEP_PIXEL_RATIO;
+        acc -= numSteps * STEP_PIXEL_RATIO;
       }
     };
 
