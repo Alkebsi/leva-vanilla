@@ -4,7 +4,7 @@ import { generateId } from '../../utils/generateId';
 import { createRow } from './row';
 
 export function createBooleanInput(key: string, controller: BooleanController) {
-  const { container, control, label } = createRow();
+  const { container, control, label } = createRow(() => controller.value);
 
   const input = document.createElement('input');
   input.className = 'leva__input leva__input--checkbox';

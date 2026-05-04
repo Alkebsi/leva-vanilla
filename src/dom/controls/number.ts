@@ -27,7 +27,7 @@ function clamp(v: number, min?: number, max?: number) {
 export function createNumberInput(key: string, controller: NumberController) {
   const isSlider = controller.min !== undefined && controller.max !== undefined;
 
-  const { container, control, label } = createRow();
+  const { container, control, label } = createRow(() => controller.value);
 
   /* ---------- Input ---------- */
 

@@ -9,7 +9,7 @@ type Entry = {
 };
 
 export function createSelectInput(key: string, controller: SelectController) {
-  const { container, control, label } = createRow();
+  const { container, control, label } = createRow(() => controller.value);
 
   const elementId = generateId(`leva__${key}`);
   label.textContent = controller.label;
