@@ -34,11 +34,28 @@ export type LevaStore = {
 /* Public API                        */
 /* ---------------------------------- */
 
+type ReservedKeys = 'effect' | '_tree' | '_controllers';
+const RESERVED_KEYS = ['effect', '_tree', '_controllers'] as const;
+
+type NoReservedKeys<T> = {
+  [K in keyof T]: K extends ReservedKeys
+    ? `Error: "${K}" is a reserved keyword and cannot be used as a control name.`
+    : unknown;
+};
+
 export function leva<const T extends Schema>(
-  schema: T & ValidateSchema<T>,
+  schema: T & ValidateSchema<T> & NoReservedKeys<T>,
   options?: LevaOptions
 ): InferState<T> & { effect: (fn: () => void) => () => void } {
   registerDefaults();
+
+  for (const key in schema) {
+    if ((RESERVED_KEYS as readonly string[]).includes(key)) {
+      throw new Error(
+        `[leva] "${key}" is a reserved keyword and cannot be used as a control name.`
+      );
+    }
+  }
 
   const tree = normalize(schema as unknown as Parameters<typeof normalize>[0]);
 
