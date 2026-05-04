@@ -1,5 +1,14 @@
 import icons from '../icons';
-import type { createGUIRoot } from './gui';
+
+export type LevaGUI = ReturnType<typeof import('./gui').createGUIRoot> & {
+  _rowCache: Array<{
+    container: HTMLElement;
+    labelEl: HTMLElement | null;
+    labelText: string;
+  }>;
+  buildRowCache: () => void;
+  adjustHeight: (animate?: boolean) => void;
+};
 
 export function createHeader() {
   const header = document.createElement('div');
@@ -24,9 +33,7 @@ export function createHeader() {
   return header;
 }
 
-export function setupHeaderInteractivity(
-  gui: ReturnType<typeof createGUIRoot>
-) {
+export function setupHeaderInteractivity(gui: LevaGUI) {
   const { base, header, contentContainer, content, searchBar } = gui; // Destructure all necessary elements
   const dropdownBtn = header.querySelector<HTMLElement>(
     '.leva__icons--dropdown-icon'
@@ -35,7 +42,10 @@ export function setupHeaderInteractivity(
   const searchBtn = header.querySelector<HTMLElement>(
     '.leva__icons--search-icon'
   )!;
-  const searchInput = searchBar.querySelector<HTMLInputElement>('input')!;
+  const searchInput = searchBar.querySelector<HTMLInputElement>(
+    '#leva__search-input'
+  )!;
+  const xBtn = searchBar.querySelector<HTMLElement>('#leva__search-x-button')!;
 
   [dropdownBtn, grabBtn, searchBtn].forEach((btn) =>
     btn.classList.add('leva__icons--active-true')
@@ -46,6 +56,7 @@ export function setupHeaderInteractivity(
 
   let heightAnim: Animation | undefined;
   let searchAnim: Animation | undefined;
+  let _searchDebounceId: number | undefined;
 
   grabBtn.style.touchAction = 'none';
   grabBtn.style.cursor = 'grab';
@@ -184,12 +195,68 @@ export function setupHeaderInteractivity(
     if (opening) {
       searchInput.focus();
       searchInput.select();
+    } else {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
     }
 
     searchAnim.onfinish = () => {
       searchBar.style.height = `${to}px`;
       searchBar.style.overflow = '';
     };
+  };
+
+  searchInput.oninput = () => {
+    window.clearTimeout(_searchDebounceId);
+    _searchDebounceId = window.setTimeout(() => {
+      const query = searchInput.value.trim().toLowerCase();
+      const rows = gui._rowCache;
+
+      if (query === '') {
+        rows.forEach((r) => (r.container.style.display = ''));
+        (
+          contentContainer.querySelectorAll(
+            '.leva__folder'
+          ) as NodeListOf<HTMLElement>
+        ).forEach((f) => (f.style.display = ''));
+        gui.adjustHeight(true);
+        xBtn.style.visibility = 'hidden';
+        return;
+      }
+
+      rows.forEach((r) => {
+        const text = (
+          r.labelEl?.textContent ||
+          r.labelText ||
+          ''
+        ).toLowerCase();
+        r.container.style.display = text.includes(query) ? '' : 'none';
+      });
+
+      const folders = Array.from(
+        contentContainer.querySelectorAll('.leva__folder')
+      ) as HTMLElement[];
+      folders.reverse().forEach((folder) => {
+        const content = folder.querySelector('.leva__folder-content');
+        if (!content) return;
+        const hasVisibleRow = !!content.querySelector(
+          '.leva__row-container:not([style*="display: none"])'
+        );
+        const hasVisibleFolder = !!content.querySelector(
+          '.leva__folder:not([style*="display: none"])'
+        );
+        folder.style.display = hasVisibleRow || hasVisibleFolder ? '' : 'none';
+      });
+
+      gui.adjustHeight(true);
+      xBtn.style.visibility = 'visible';
+    }, 120);
+  };
+
+  xBtn.onclick = () => {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.focus();
   };
 
   // Keyboard shortcut for search

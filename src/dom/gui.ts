@@ -1,5 +1,6 @@
 import '../styles/index.css';
-import { createHeader, setupHeaderInteractivity } from './header';
+import icons from '../icons';
+import { createHeader, setupHeaderInteractivity, type LevaGUI } from './header';
 import type { Controls } from './types';
 import { createNumberInput } from './controls/number';
 import { createBooleanInput } from './controls/boolean';
@@ -8,10 +9,70 @@ import { createButtonInput } from './controls/button';
 import type { AnyController } from '../core/types';
 
 export function mountDOM(controls: Controls) {
-  const gui = createGUIRoot();
+  const elements = createGUIRoot();
+  const _rowCache: LevaGUI['_rowCache'] = [];
+  let _cacheRebuildId: number | undefined;
+  let _heightAnim: Animation | undefined;
+
+  const buildRowCache = () => {
+    const nodes = Array.from(
+      elements.content.querySelectorAll('.leva__row-container')
+    ) as HTMLElement[];
+    _rowCache.length = 0;
+    nodes.forEach((container) => {
+      const labelEl = container.querySelector(
+        '.leva__label'
+      ) as HTMLElement | null;
+      _rowCache.push({
+        container,
+        labelEl,
+        labelText: String(labelEl?.textContent || ''),
+      });
+    });
+  };
+
+  const adjustHeight = (animate = false) => {
+    const prev = elements.contentContainer.clientHeight;
+    if (getComputedStyle(elements.contentContainer).height === 'auto') {
+      elements.contentContainer.style.height = `${prev}px`;
+    }
+
+    const next = (elements.contentContainer.firstElementChild as HTMLElement)
+      .scrollHeight;
+    if (prev === next) {
+      elements.contentContainer.style.height = 'auto';
+      return;
+    }
+
+    _heightAnim?.cancel();
+    _heightAnim = elements.contentContainer.animate(
+      [{ height: `${prev}px` }, { height: `${next}px` }],
+      {
+        duration: animate ? 350 : 0,
+        easing: 'ease',
+      }
+    );
+
+    _heightAnim.onfinish = () => {
+      elements.contentContainer.style.height = 'auto';
+    };
+  };
+
+  const gui: LevaGUI = { ...elements, _rowCache, buildRowCache, adjustHeight };
 
   renderControls(controls, gui.content);
   setupHeaderInteractivity(gui);
+
+  const observer = new MutationObserver(() => {
+    window.clearTimeout(_cacheRebuildId);
+    _cacheRebuildId = window.setTimeout(buildRowCache, 50);
+  });
+  observer.observe(gui.content, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  buildRowCache();
 
   return gui;
 }
@@ -33,7 +94,12 @@ export function createGUIRoot(parent: HTMLElement = document.body) {
   searchInput.placeholder = '[Open filter with CMD+SHIFT+L]';
   searchInput.name = 'leva__search-input';
   searchInput.id = 'leva__search-input';
-  searchBar.appendChild(searchInput);
+
+  const xBtn = document.createElement('i');
+  xBtn.innerHTML = icons.cross;
+  xBtn.id = 'leva__search-x-button';
+  searchBar.append(searchInput, xBtn);
+
   // Start collapsed
   searchBar.style.height = '0px';
 
