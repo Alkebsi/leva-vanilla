@@ -77,7 +77,10 @@ export function leva<const T extends Schema>(
   build(tree, state, controllers, store);
 
   if (options?.gui !== false) {
-    mountDOM(controls);
+    mountDOM(controls, {
+      title: options?.title,
+      collapsed: options?.collapse,
+    });
   }
 
   return controls;
@@ -95,6 +98,8 @@ function build(
   path: string[] = []
 ) {
   for (const key in tree) {
+    if (key === '$') continue;
+
     const node = tree[key];
     const fullPath = [...path, key];
 

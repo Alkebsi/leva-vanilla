@@ -25,10 +25,17 @@ const controls = leva({
     label: 'Something else',
     disabled: true,
   },
+  testFolder: {
+    $: {
+      label: 'Folder Name',
+      // collapsed: true,
+    },
+    box: 5,
+  },
 });
 
 controls.effect(() => {
-  box.style.width = `${controls.width * (controls.mul ? 50 : 10)}px`;
+  box.style.width = `${controls.testFolder.box * (controls.mul ? 50 : 10)}px`;
   box.style.height = `${controls.height * (controls.mul ? 50 : 10)}px`;
 
   if (controls.mode === 'r') {

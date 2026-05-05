@@ -1,18 +1,61 @@
 import '../styles/index.css';
 import icons from '../icons';
-import { createHeader, setupHeaderInteractivity, type LevaGUI } from './header';
+import { createHeader, setupHeaderInteractivity } from './header';
 import type { Controls } from './types';
 import { createNumberInput } from './controls/number';
 import { createBooleanInput } from './controls/boolean';
 import { createSelectInput } from './controls/select';
 import { createButtonInput } from './controls/button';
-import type { AnyController } from '../core/types';
+import type { AnyController, FolderSettings } from '../core/types';
+import { createFolder } from './folder';
+import type { Node } from '../schema/nodes';
 
-export function mountDOM(controls: Controls) {
-  const elements = createGUIRoot();
+const CONTROL_RENDERERS: Record<
+  string,
+  (name: string, ctrl: AnyController) => HTMLElement
+> = {
+  number: createNumberInput as (
+    name: string,
+    ctrl: AnyController
+  ) => HTMLElement,
+  boolean: createBooleanInput as (
+    name: string,
+    ctrl: AnyController
+  ) => HTMLElement,
+  select: createSelectInput as (
+    name: string,
+    ctrl: AnyController
+  ) => HTMLElement,
+  button: createButtonInput as (
+    name: string,
+    ctrl: AnyController
+  ) => HTMLElement,
+};
+
+export type LevaGUI = ReturnType<typeof createGUIRoot> & {
+  _rowCache: Array<{
+    container: HTMLElement;
+    labelEl: HTMLElement | null;
+    labelText: string;
+  }>;
+  buildRowCache: () => void;
+  adjustHeight: (animate?: boolean) => void;
+  toggle: (open?: boolean) => void;
+  isOpen: () => boolean;
+};
+
+export function mountDOM(
+  controls: Controls,
+  options: { title?: string; collapsed?: boolean } = {}
+) {
+  const elements = createGUIRoot(document.body, options.title);
   const _rowCache: LevaGUI['_rowCache'] = [];
   let _cacheRebuildId: number | undefined;
   let _heightAnim: Animation | undefined;
+  let _contentAnim: Animation | undefined;
+  let _iconAnim: Animation | undefined;
+  let _isOpen = options.collapsed !== true;
+  let _currentAngle = _isOpen ? 0 : -90;
 
   const buildRowCache = () => {
     const nodes = Array.from(
@@ -32,13 +75,15 @@ export function mountDOM(controls: Controls) {
   };
 
   const adjustHeight = (animate = false) => {
-    const prev = elements.contentContainer.clientHeight;
-    if (getComputedStyle(elements.contentContainer).height === 'auto') {
+    if (!_isOpen) return;
+
+    const prev = elements.contentContainer.clientHeight || 0;
+    const style = getComputedStyle(elements.contentContainer);
+    if (style.height === 'auto' || style.height === '') {
       elements.contentContainer.style.height = `${prev}px`;
     }
 
-    const next = (elements.contentContainer.firstElementChild as HTMLElement)
-      .scrollHeight;
+    const next = elements.content.scrollHeight;
     if (prev === next) {
       elements.contentContainer.style.height = 'auto';
       return;
@@ -55,36 +100,140 @@ export function mountDOM(controls: Controls) {
 
     _heightAnim.onfinish = () => {
       elements.contentContainer.style.height = 'auto';
+      _heightAnim?.cancel();
     };
   };
 
-  const gui: LevaGUI = { ...elements, _rowCache, buildRowCache, adjustHeight };
+  const toggle = (open?: boolean) => {
+    const wasOpen = _isOpen;
+    const next = open ?? !wasOpen;
+    if (next === wasOpen && open === undefined) return;
+    _isOpen = next;
+
+    const { contentContainer, content, header } = elements;
+    const iconElem = header.querySelector('.leva__icons--dropdown-icon')
+      ?.firstElementChild as HTMLElement;
+
+    const currentHeight = contentContainer.getBoundingClientRect().height;
+    const currentOpacity = window.getComputedStyle(content).opacity;
+    const startAngle = _currentAngle;
+
+    _heightAnim?.cancel();
+    _contentAnim?.cancel();
+    _iconAnim?.cancel();
+
+    const animate = open === undefined;
+    const duration = animate ? 350 : 0;
+    contentContainer.style.overflow = 'hidden';
+
+    _currentAngle = _isOpen ? 0 : -90;
+    if (_isOpen) {
+      const toHeight = content.scrollHeight;
+
+      _heightAnim = contentContainer.animate(
+        [{ height: `${currentHeight}px` }, { height: `${toHeight}px` }],
+        { duration, easing: 'ease', fill: 'forwards' }
+      );
+
+      _contentAnim = content.animate(
+        [{ opacity: currentOpacity }, { opacity: 1 }],
+        {
+          duration: duration * 0.57,
+          delay: duration * 0.57,
+          easing: 'ease-out',
+          fill: 'both',
+        }
+      );
+
+      _iconAnim = iconElem?.animate(
+        [
+          { transform: `rotate(${startAngle}deg)` },
+          { transform: 'rotate(0deg)' },
+        ],
+        { duration, easing: 'ease', fill: 'forwards' }
+      );
+
+      _heightAnim.onfinish = () => {
+        contentContainer.style.height = 'auto';
+        contentContainer.style.overflow = '';
+        _heightAnim?.cancel();
+      };
+    } else {
+      _heightAnim = contentContainer.animate(
+        [{ height: `${currentHeight}px` }, { height: '0px' }],
+        { duration, easing: 'ease', fill: 'forwards' }
+      );
+
+      _contentAnim = content.animate(
+        [{ opacity: currentOpacity }, { opacity: 0 }],
+        { duration: duration * 0.57, easing: 'ease-in', fill: 'forwards' }
+      );
+
+      _iconAnim = iconElem?.animate(
+        [
+          { transform: `rotate(${startAngle}deg)` },
+          { transform: 'rotate(-90deg)' },
+        ],
+        { duration, easing: 'ease', fill: 'forwards' }
+      );
+
+      _heightAnim.onfinish = () => {
+        contentContainer.style.height = '0px';
+        contentContainer.style.overflow = '';
+        _heightAnim?.cancel();
+      };
+    }
+  };
+
+  const gui: LevaGUI = {
+    ...elements,
+    _rowCache,
+    buildRowCache,
+    adjustHeight,
+    toggle,
+    isOpen: () => _isOpen,
+  };
 
   renderControls(controls, gui.content);
   setupHeaderInteractivity(gui);
 
-  const observer = new MutationObserver(() => {
-    window.clearTimeout(_cacheRebuildId);
-    _cacheRebuildId = window.setTimeout(buildRowCache, 50);
+  if (!_isOpen) {
+    elements.contentContainer.style.height = '0px';
+    elements.content.style.opacity = '0';
+    const icon = elements.header.querySelector('.leva__icons--dropdown-icon')
+      ?.firstElementChild as HTMLElement;
+    if (icon) icon.style.transform = 'rotate(-90deg)';
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    const hasStructureChange = mutations.some((m) => m.type === 'childList');
+    if (hasStructureChange) {
+      window.clearTimeout(_cacheRebuildId);
+      _cacheRebuildId = window.setTimeout(() => {
+        buildRowCache();
+        adjustHeight(true);
+      }, 50);
+    }
   });
   observer.observe(gui.content, {
     childList: true,
-    subtree: true,
-    characterData: true,
   });
   buildRowCache();
 
   return gui;
 }
 
-export function createGUIRoot(parent: HTMLElement = document.body) {
+export function createGUIRoot(
+  parent: HTMLElement = document.body,
+  title?: string
+) {
   const root = document.createElement('div');
   root.id = 'leva__root';
 
   const base = document.createElement('div');
   base.className = 'leva__base leva__base--fill-false leva__base--flat-false';
 
-  const header = createHeader();
+  const header = createHeader(title);
   const content = document.createElement('div');
   content.className = 'leva__content';
 
@@ -100,16 +249,11 @@ export function createGUIRoot(parent: HTMLElement = document.body) {
   xBtn.id = 'leva__search-x-button';
   searchBar.append(searchInput, xBtn);
 
-  // Start collapsed
   searchBar.style.height = '0px';
 
   const contentContainer = document.createElement('div');
   contentContainer.className = 'leva__content-container';
   contentContainer.append(content);
-
-  requestAnimationFrame(() => {
-    contentContainer.style.setProperty('height', 'auto');
-  });
 
   base.append(header, searchBar, contentContainer);
   root.appendChild(base);
@@ -127,25 +271,79 @@ export function createGUIRoot(parent: HTMLElement = document.body) {
 
 function renderControls(controls: Controls, container: HTMLElement) {
   const controllers = controls._controllers;
+  _renderControlsRecursive(controls._tree, controllers, container, []);
+}
 
-  Object.keys(controllers).forEach((key) => {
-    const controller = controllers[key] as AnyController;
-    switch (controller.type) {
-      case 'number':
-        container.appendChild(createNumberInput(key, controller));
-        break;
-      case 'boolean':
-        container.appendChild(createBooleanInput(key, controller));
-        break;
-      case 'select':
-        container.appendChild(createSelectInput(key, controller));
-        break;
-      case 'button':
-        container.appendChild(createButtonInput(key, controller));
-        break;
-      default:
-        console.warn(`[leva] No renderer found for key: ${key}`);
-        break;
+function extractSettings(config: Node | undefined): FolderSettings {
+  const settings: FolderSettings = {};
+  if (!config || typeof config !== 'object') return settings;
+
+  const data = config as Record<string, unknown>;
+
+  if (data['label'] !== undefined) settings.label = String(data['label']);
+  if (data['collapsed'] !== undefined)
+    settings.collapsed = Boolean(data['collapsed']);
+
+  const value = data['value'];
+  if (value && typeof value === 'object') {
+    const v = value as Record<string, unknown>;
+    if (settings.label === undefined && v['label'] !== undefined)
+      settings.label = String(v['label']);
+    if (settings.collapsed === undefined && v['collapsed'] !== undefined)
+      settings.collapsed = Boolean(v['collapsed']);
+  }
+
+  const children = data['children'];
+  if (children && typeof children === 'object') {
+    const c = children as Record<string, unknown>;
+    const getVal = (v: unknown): unknown =>
+      v && typeof v === 'object' && 'value' in v
+        ? (v as Record<string, unknown>)['value']
+        : v;
+
+    if (settings.label === undefined && c['label'] !== undefined)
+      settings.label = String(getVal(c['label']));
+    if (settings.collapsed === undefined && c['collapsed'] !== undefined)
+      settings.collapsed = Boolean(getVal(c['collapsed']));
+  }
+
+  return settings;
+}
+
+function _renderControlsRecursive(
+  tree: Record<string, Node>,
+  controllers: Record<string, AnyController>,
+  container: HTMLElement,
+  path: string[]
+) {
+  const keys = Object.keys(tree).filter((k) => k !== '$');
+
+  keys.forEach((key) => {
+    const node = tree[key];
+    const fullPath = [...path, key].join('.');
+
+    if (node.type === 'folder') {
+      const folderNode = node;
+      const folderSettings = extractSettings(folderNode.children?.['$']);
+
+      const folderElements = createFolder(container, key, folderSettings);
+      _renderControlsRecursive(
+        folderNode.children,
+        controllers,
+        folderElements.content,
+        [...path, key]
+      );
+    } else {
+      const controller = controllers[fullPath];
+      const renderer = controller ? CONTROL_RENDERERS[controller.type] : null;
+
+      if (renderer && controller) {
+        container.appendChild(renderer(key, controller));
+      } else {
+        console.warn(
+          `[leva] No renderer or controller found for type: ${controller?.type || 'unknown'} at ${fullPath}`
+        );
+      }
     }
   });
 }

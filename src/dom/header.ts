@@ -1,19 +1,12 @@
 import icons from '../icons';
+import type { LevaGUI } from './gui';
 
-export type LevaGUI = ReturnType<typeof import('./gui').createGUIRoot> & {
-  _rowCache: Array<{
-    container: HTMLElement;
-    labelEl: HTMLElement | null;
-    labelText: string;
-  }>;
-  buildRowCache: () => void;
-  adjustHeight: (animate?: boolean) => void;
-};
-
-export function createHeader() {
+export function createHeader(title?: string) {
   const header = document.createElement('div');
   header.className = 'leva__header';
-
+  const titleEl = document.createElement('div');
+  titleEl.className = 'leva__title';
+  titleEl.textContent = title || '';
   const dropdown = document.createElement('div');
   dropdown.className = 'leva__icons leva__icons--dropdown-icon';
   dropdown.innerHTML = icons.downArrow;
@@ -21,20 +14,15 @@ export function createHeader() {
   const grab = document.createElement('div');
   grab.className = 'leva__icons leva__icons--grab-icon';
   grab.innerHTML = icons.grab;
-
   const search = document.createElement('div');
   search.className = 'leva__icons leva__icons--search-icon';
   search.innerHTML = icons.search;
-
-  header.appendChild(dropdown);
-  header.appendChild(grab);
-  header.appendChild(search);
-
+  header.append(dropdown, titleEl, grab, search);
   return header;
 }
 
 export function setupHeaderInteractivity(gui: LevaGUI) {
-  const { base, header, contentContainer, content, searchBar } = gui; // Destructure all necessary elements
+  const { base, header, contentContainer, searchBar } = gui;
   const dropdownBtn = header.querySelector<HTMLElement>(
     '.leva__icons--dropdown-icon'
   )!;
@@ -47,33 +35,28 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
   )!;
   const xBtn = searchBar.querySelector<HTMLElement>('#leva__search-x-button')!;
 
-  [dropdownBtn, grabBtn, searchBtn].forEach((btn) =>
-    btn.classList.add('leva__icons--active-true')
-  );
-
-  let isOpen = true;
   let isSearchOpen = false;
-
-  let heightAnim: Animation | undefined;
   let searchAnim: Animation | undefined;
-  let _searchDebounceId: number | undefined;
-
+  let searchDebounceId: number | undefined;
   grabBtn.style.touchAction = 'none';
   grabBtn.style.cursor = 'grab';
   grabBtn.addEventListener('pointerdown', (e: PointerEvent) => {
     if (!e.isPrimary) return;
     const rect = base.getBoundingClientRect();
-    base.style.position = 'fixed';
-    base.style.left = `${rect.left}px`;
-    base.style.top = `${rect.top}px`;
-    base.style.margin = '0';
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const {
+      left: startLeft,
+      top: startTop,
+      width: elWidth,
+      height: elHeight,
+    } = rect;
 
-    const startX = e.clientX,
-      startY = e.clientY;
-    const startLeft = rect.left,
-      startTop = rect.top;
-    const elWidth = rect.width,
-      elHeight = rect.height;
+    base.style.position = 'fixed';
+    base.style.left = `${startLeft}px`;
+    base.style.top = `${startTop}px`;
+    base.style.margin = '0';
+    base.style.willChange = 'transform';
 
     try {
       grabBtn.setPointerCapture(e.pointerId);
@@ -81,9 +64,22 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
       void err;
     }
 
+    let currentDx = 0;
+    let currentDy = 0;
+    let ticking = false;
+
     const onMove = (ev: PointerEvent) => {
       if (!ev.isPrimary) return;
-      base.style.transform = `translate3d(${ev.clientX - startX}px, ${ev.clientY - startY}px, 0)`;
+      currentDx = ev.clientX - startX;
+      currentDy = ev.clientY - startY;
+
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          base.style.transform = `translate3d(${currentDx}px, ${currentDy}px, 0)`;
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
     const onUp = (upEv: PointerEvent) => {
@@ -93,105 +89,32 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
       } catch (err) {
         void err;
       }
-      const finalLeft = startLeft + (upEv.clientX - startX);
-      const finalTop = startTop + (upEv.clientY - startY);
+      const dx = upEv.clientX - startX;
+      const dy = upEv.clientY - startY;
       base.style.transform = '';
-      base.style.left = `${Math.min(Math.max(finalLeft, 0), window.innerWidth - elWidth)}px`;
-      base.style.top = `${Math.min(Math.max(finalTop, 0), window.innerHeight - elHeight)}px`;
+      base.style.willChange = '';
+      base.style.left = `${Math.min(Math.max(startLeft + dx, 0), window.innerWidth - elWidth)}px`;
+      base.style.top = `${Math.min(Math.max(startTop + dy, 0), window.innerHeight - elHeight)}px`;
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
       grabBtn.style.cursor = 'grab';
     };
-
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
     grabBtn.style.cursor = 'grabbing';
   });
-
-  dropdownBtn.onclick = () => {
-    const iconElem = dropdownBtn.firstElementChild as HTMLElement;
-    const currentHeight = contentContainer.getBoundingClientRect().height;
-    const currentOpacity = parseFloat(window.getComputedStyle(content).opacity);
-
-    const transform = window.getComputedStyle(iconElem).transform;
-    let currentAngle = isOpen ? 0 : -90;
-    if (transform && transform !== 'none') {
-      const matrix = transform.split('(')[1].split(')')[0].split(',');
-      currentAngle = Math.round(
-        Math.atan2(parseFloat(matrix[1]), parseFloat(matrix[0])) *
-          (180 / Math.PI)
-      );
-    }
-
-    heightAnim?.cancel();
-
-    if (isOpen) {
-      contentContainer.style.overflow = 'hidden';
-      heightAnim = contentContainer.animate(
-        [{ height: `${currentHeight}px` }, { height: `0px` }],
-        { duration: 350, easing: 'ease', fill: 'forwards' }
-      );
-      content.animate([{ opacity: currentOpacity }, { opacity: 0 }], {
-        duration: 200,
-        easing: 'ease-in',
-        fill: 'forwards',
-      });
-      iconElem.animate(
-        [
-          { transform: `rotate(${currentAngle}deg)` },
-          { transform: 'rotate(-90deg)' },
-        ],
-        { duration: 350, easing: 'ease', fill: 'forwards' }
-      );
-      heightAnim.onfinish = () => {
-        contentContainer.style.height = '0px';
-        contentContainer.style.overflow = '';
-      };
-      isOpen = false;
-    } else {
-      const toHeight = content.scrollHeight;
-      contentContainer.style.overflow = 'hidden';
-      heightAnim = contentContainer.animate(
-        [{ height: `${currentHeight}px` }, { height: `${toHeight}px` }],
-        { duration: 350, easing: 'ease', fill: 'forwards' }
-      );
-      content.animate([{ opacity: currentOpacity }, { opacity: 1 }], {
-        duration: 200,
-        delay: 200,
-        easing: 'ease-out',
-        fill: 'both',
-      });
-      iconElem.animate(
-        [
-          { transform: `rotate(${currentAngle}deg)` },
-          { transform: 'rotate(0deg)' },
-        ],
-        { duration: 350, easing: 'ease', fill: 'forwards' }
-      );
-      heightAnim.onfinish = () => {
-        contentContainer.style.height = 'auto';
-        contentContainer.style.overflow = '';
-      };
-      isOpen = true;
-    }
-  };
-
+  dropdownBtn.onclick = () => gui.toggle();
   searchBtn.onclick = () => {
+    const opening = !isSearchOpen;
+    const toHeight = opening ? 30 : 0;
     const currentHeight = searchBar.getBoundingClientRect().height;
     searchAnim?.cancel();
-
-    const opening = !isSearchOpen;
-    const to = opening ? 30 : 0;
-
     searchBar.style.overflow = 'hidden';
     searchAnim = searchBar.animate(
-      [{ height: `${currentHeight}px` }, { height: `${to}px` }],
+      [{ height: `${currentHeight}px` }, { height: `${toHeight}px` }],
       { duration: 350, easing: 'ease', fill: 'forwards' }
     );
-
-    // Toggle state immediately
     isSearchOpen = opening;
-
     if (opening) {
       searchInput.focus();
       searchInput.select();
@@ -199,67 +122,54 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
       searchInput.value = '';
       searchInput.dispatchEvent(new Event('input'));
     }
-
     searchAnim.onfinish = () => {
-      searchBar.style.height = `${to}px`;
+      searchBar.style.height = `${toHeight}px`;
       searchBar.style.overflow = '';
     };
   };
-
   searchInput.oninput = () => {
-    window.clearTimeout(_searchDebounceId);
-    _searchDebounceId = window.setTimeout(() => {
+    window.clearTimeout(searchDebounceId);
+    searchDebounceId = window.setTimeout(() => {
       const query = searchInput.value.trim().toLowerCase();
       const rows = gui._rowCache;
+      const folders = Array.from(
+        contentContainer.querySelectorAll<HTMLElement>('.leva__folder')
+      );
 
       if (query === '') {
         rows.forEach((r) => (r.container.style.display = ''));
-        (
-          contentContainer.querySelectorAll(
-            '.leva__folder'
-          ) as NodeListOf<HTMLElement>
-        ).forEach((f) => (f.style.display = ''));
+        folders.forEach((f) => (f.style.display = ''));
         gui.adjustHeight(true);
         xBtn.style.visibility = 'hidden';
         return;
       }
 
+      folders.forEach((f) => (f.style.display = 'none'));
       rows.forEach((r) => {
-        const text = (
-          r.labelEl?.textContent ||
-          r.labelText ||
-          ''
-        ).toLowerCase();
-        r.container.style.display = text.includes(query) ? '' : 'none';
+        const isMatch = r.labelText.toLowerCase().includes(query);
+        if (isMatch) {
+          r.container.style.display = '';
+          let parent = r.container.parentElement;
+          while (parent && parent !== gui.content) {
+            if (parent.classList.contains('leva__folder')) {
+              parent.style.display = '';
+            }
+            parent = parent.parentElement;
+          }
+        } else {
+          r.container.style.display = 'none';
+        }
       });
 
-      const folders = Array.from(
-        contentContainer.querySelectorAll('.leva__folder')
-      ) as HTMLElement[];
-      folders.reverse().forEach((folder) => {
-        const content = folder.querySelector('.leva__folder-content');
-        if (!content) return;
-        const hasVisibleRow = !!content.querySelector(
-          '.leva__row-container:not([style*="display: none"])'
-        );
-        const hasVisibleFolder = !!content.querySelector(
-          '.leva__folder:not([style*="display: none"])'
-        );
-        folder.style.display = hasVisibleRow || hasVisibleFolder ? '' : 'none';
-      });
-
-      gui.adjustHeight(true);
+      if (gui.isOpen()) gui.adjustHeight(true);
       xBtn.style.visibility = 'visible';
     }, 120);
   };
-
   xBtn.onclick = () => {
     searchInput.value = '';
     searchInput.dispatchEvent(new Event('input'));
     searchInput.focus();
   };
-
-  // Keyboard shortcut for search
   document.addEventListener('keydown', (e) => {
     const key = (e.key || '').toLowerCase();
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'l') {

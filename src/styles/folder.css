@@ -8,11 +8,15 @@
   font-weight: var(--leva-fontWeights-folder);
 }
 
-.leva__folder:not(:first-of-type) {
+.leva__folder:not(:first-of-type):not(.leva__folder--subsequent) {
   padding-top: var(--leva-space-sm);
   margin-top: var(--leva-space-md);
   border-top: var(--leva-borderWidths-folder) solid
     var(--leva-colors-elevation1);
+}
+
+.leva__folder--nested {
+  padding-right: 0;
 }
 
 .leva__folder:hover > .leva__folder-header > svg {

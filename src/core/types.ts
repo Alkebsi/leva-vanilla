@@ -60,9 +60,8 @@ export type ButtonController = BaseController<'button'> & {
 /* Folder Types                       */
 /* ---------------------------------- */
 export type FolderSettings = {
-  title?: string;
+  label?: string;
   collapsed?: boolean;
-  render?: (get: (path: string) => unknown) => boolean;
 };
 
 /* ---------------------------------- */
