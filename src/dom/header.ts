@@ -52,11 +52,15 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
       height: elHeight,
     } = rect;
 
+    let isDragging = true;
     base.style.position = 'fixed';
     base.style.left = `${startLeft}px`;
     base.style.top = `${startTop}px`;
+    base.style.width = `${elWidth}px`;
+    base.style.right = 'auto';
+    base.style.bottom = 'auto';
     base.style.margin = '0';
-    base.style.willChange = 'transform';
+    base.style.setProperty('transition', 'none', 'important');
 
     try {
       grabBtn.setPointerCapture(e.pointerId);
@@ -75,6 +79,7 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
 
       if (!ticking) {
         requestAnimationFrame(() => {
+          if (!isDragging) return;
           base.style.transform = `translate3d(${currentDx}px, ${currentDy}px, 0)`;
           ticking = false;
         });
@@ -84,15 +89,18 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
 
     const onUp = (upEv: PointerEvent) => {
       if (!upEv.isPrimary) return;
+      isDragging = false;
+
       try {
         grabBtn.releasePointerCapture(upEv.pointerId);
       } catch (err) {
         void err;
       }
+
       const dx = upEv.clientX - startX;
       const dy = upEv.clientY - startY;
       base.style.transform = '';
-      base.style.willChange = '';
+      base.style.transition = '';
       base.style.left = `${Math.min(Math.max(startLeft + dx, 0), window.innerWidth - elWidth)}px`;
       base.style.top = `${Math.min(Math.max(startTop + dy, 0), window.innerHeight - elHeight)}px`;
       document.removeEventListener('pointermove', onMove);
