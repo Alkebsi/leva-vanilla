@@ -16,15 +16,17 @@
   width: 40px;
   user-select: none;
   cursor: pointer;
+  color: var(--leva-colors-highlight1);
 }
 
-.leva__icons > svg > * {
+.leva__icons {
   fill: var(--leva-colors-highlight1);
   transition: fill 250ms;
 }
 
-.leva__icons:hover > svg > * {
+.leva__icons:hover {
   fill: var(--leva-colors-highlight3);
+  color: var(--leva-colors-highlight3);
 }
 
 .leva__icons--grab-icon {

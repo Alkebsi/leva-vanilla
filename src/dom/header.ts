@@ -4,20 +4,23 @@ import type { LevaGUI } from './gui';
 export function createHeader(title?: string) {
   const header = document.createElement('div');
   header.className = 'leva__header';
-  const titleEl = document.createElement('div');
-  titleEl.className = 'leva__title';
-  titleEl.textContent = title || '';
   const dropdown = document.createElement('div');
   dropdown.className = 'leva__icons leva__icons--dropdown-icon';
   dropdown.innerHTML = icons.downArrow;
 
   const grab = document.createElement('div');
   grab.className = 'leva__icons leva__icons--grab-icon';
-  grab.innerHTML = icons.grab;
+
+  if (title) {
+    grab.textContent = title;
+  } else {
+    grab.innerHTML = icons.grab;
+  }
+
   const search = document.createElement('div');
   search.className = 'leva__icons leva__icons--search-icon';
   search.innerHTML = icons.search;
-  header.append(dropdown, titleEl, grab, search);
+  header.append(dropdown, grab, search);
   return header;
 }
 
