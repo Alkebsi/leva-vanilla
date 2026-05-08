@@ -33,6 +33,8 @@ export type ValueController<T, Type extends string> = BaseController<Type> & {
 /* ---------------------------------- */
 /* Specific Controller Types          */
 /* ---------------------------------- */
+export type StringController = ValueController<string, 'string'>;
+
 export type NumberController = ValueController<number, 'number'> & {
   min?: number;
   max?: number;
@@ -68,6 +70,7 @@ export type FolderSettings = {
 /* The Plugin Registry                */
 /* ---------------------------------- */
 export interface ControlRegistry {
+  string: { input: StringInput; value: string; controller: StringController };
   number: { input: NumberInput; value: number; controller: NumberController };
   boolean: {
     input: BooleanInput;
@@ -116,6 +119,7 @@ export type NumberInput = {
   label?: string;
 };
 export type BooleanInput = { value: boolean; label?: string };
+export type StringInput = { value: string; label?: string };
 export type SelectOptions =
   | readonly (string | number)[]
   | Record<string, string | number>;

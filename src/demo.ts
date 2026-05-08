@@ -55,6 +55,7 @@ const renderJSON = (obj: StateRecord, path = '', indent = '  '): string => {
 
 const controls = leva(
   {
+    text: 'Some Text',
     Numbers: {
       number: 10,
       stepped: { value: 5, step: 1 },

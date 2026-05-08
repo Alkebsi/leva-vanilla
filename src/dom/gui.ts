@@ -3,6 +3,7 @@ import icons from '../icons';
 import { createHeader, setupHeaderInteractivity } from './header';
 import type { Controls } from './types';
 import { createNumberInput } from './controls/number';
+import { createStringInput } from './controls/string';
 import { createBooleanInput } from './controls/boolean';
 import { createSelectInput } from './controls/select';
 import { createButtonInput } from './controls/button';
@@ -14,6 +15,10 @@ const CONTROL_RENDERERS: Record<
   string,
   (name: string, ctrl: AnyController) => HTMLElement
 > = {
+  string: createStringInput as (
+    name: string,
+    ctrl: AnyController
+  ) => HTMLElement,
   number: createNumberInput as (
     name: string,
     ctrl: AnyController
