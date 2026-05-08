@@ -6,6 +6,7 @@ import { createNumberInput } from './controls/number';
 import { createStringInput } from './controls/string';
 import { createBooleanInput } from './controls/boolean';
 import { createSelectInput } from './controls/select';
+import { createColorInput } from './controls/color';
 import { createButtonInput } from './controls/button';
 import type { AnyController, FolderSettings } from '../core/types';
 import { createFolder } from './folder';
@@ -19,6 +20,7 @@ const CONTROL_RENDERERS: Record<
     name: string,
     ctrl: AnyController
   ) => HTMLElement,
+  color: createColorInput as (name: string, ctrl: AnyController) => HTMLElement,
   number: createNumberInput as (
     name: string,
     ctrl: AnyController

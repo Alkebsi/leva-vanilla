@@ -56,6 +56,7 @@ const renderJSON = (obj: StateRecord, path = '', indent = '  '): string => {
 const controls = leva(
   {
     text: 'Some Text',
+    color: { value: '#ff0000', label: 'TestColor' },
     Numbers: {
       number: 10,
       stepped: { value: 5, step: 1 },
@@ -64,10 +65,19 @@ const controls = leva(
       slider: { value: 0.5, min: 0, max: 1 },
       steppedSlider: { value: 0.5, min: 0, max: 1, step: 0.1 },
     },
-    Misc: {
+    Miscellaneous: {
+      $: { label: 'Misc' },
       selection: {
         value: 'option 1',
         options: ['option 1', 'option 2', 'option 3'],
+      },
+      namedSelection: {
+        value: 'L',
+        options: {
+          large: 'L',
+          medium: 'M',
+          Small: 'S',
+        },
       },
       checkbox: true,
     },
