@@ -14,18 +14,18 @@ document.body.style.cssText = `
 
 const style = document.createElement('style');
 style.textContent = `
-  #json { 
+  #json {
     position: absolute; left: 10px; top: 10px; padding: 15px 20px; z-index: 10;
-    background: #1b1e28; box-sizing: border-box; 
-    box-shadow: var(--leva-shadows-level2); border-radius: var(--leva-radii-lg); 
-    color: #add7ff; font-family: var(--leva-fonts-mono); font-size: 0.8rem; 
-    line-height: 1.6; white-space: pre; overflow: hidden; 
+    background: #1b1e28; box-sizing: border-box;
+    box-shadow: var(--leva-shadows-level2); border-radius: var(--leva-radii-lg);
+    color: #add7ff; font-family: var(--leva-fonts-mono); font-size: 0.8rem;
+    line-height: 1.6; white-space: pre; overflow: hidden;
   }
-  .line { 
-    display: block; transition: all 0.4s; padding: 0 24px; margin: 0 -24px; 
+  .line {
+    display: block; transition: all 0.4s; padding: 0 24px; margin: 0 -24px;
   }
-  .line.update { 
-    background: #0b0d11; color: #d1d1d1; transition: none; 
+  .line.update {
+    background: #0b0d11; color: #d1d1d1; transition: none;
   }
 `;
 document.head.append(style);
@@ -46,8 +46,7 @@ const renderJSON = (obj: StateRecord, path = '', indent = '  '): string => {
           `<span class="line">${indent}},</span>`
         );
       }
-      const color =
-        typeof v === 'string' || typeof v === 'number' ? '#5de4c7' : '#ffa5d8';
+      const color = '#5de4c7';
       return `<span id="l-${p}" class="line">${indent}${k}: <span style="color: ${color}">${JSON.stringify(v)}</span>,</span>`;
     })
     .join('');

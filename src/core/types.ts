@@ -161,6 +161,18 @@ type GetSelectValue<T> = T extends readonly (infer V)[]
     ? V
     : never;
 
+type Widen<T> = T extends number
+  ? number
+  : T extends string
+    ? string
+    : T extends boolean
+      ? boolean
+      : T extends readonly unknown[]
+        ? { [K in keyof T]: Widen<T[K]> }
+        : T extends Record<string, unknown>
+          ? { [K in keyof T]: Widen<T[K]> }
+          : T;
+
 export type InferState<T> = {
   [K in keyof T as IsAction<T[K]> extends true
     ? never
@@ -169,16 +181,10 @@ export type InferState<T> = {
       : K]: T[K] extends { options: infer O }
     ? GetSelectValue<O>
     : T[K] extends { value: infer V }
-      ? V
-      : T[K] extends number
-        ? number
-        : T[K] extends boolean
-          ? boolean
-          : T[K] extends string
-            ? string
-            : T[K] extends Record<string, unknown>
-              ? InferState<T[K]>
-              : T[K];
+      ? Widen<V>
+      : T[K] extends Record<string, unknown>
+        ? InferState<T[K]>
+        : Widen<T[K]>;
 };
 
 export type ValidateSchema<T> = {

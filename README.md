@@ -31,17 +31,29 @@ npm install leva-vanilla
 ## Quick Start
 
 ```js
-import { leva } from 'leva-vanilla';
+import { leva } from './core/leva';
+
+const box = document.createElement('div');
 
 const controls = leva({
-  positionX: { value: 1, min: 0, max: 10 },
-  color: '#ff0000',
+  width: { value: 10, min: 10, max: 160, step: 10 },
+  height: { value: 10, min: 10, max: 160, step: 10 },
+  color: '#ff0000ff',
 });
 
 controls.effect(() => {
-  element.style.background = controls.color;
-  mesh.position.x = controls.positionX;
+  box.style.width = `${controls.width}px`;
+  box.style.height = `${controls.height}px`;
+  box.style.backgroundColor = controls.color;
 });
+
+setTimeout(() => {
+  controls.width = 60;
+  controls.height = 60;
+  controls.color = '#777';
+}, 1000);
+
+document.body.append(box);
 ```
 
 No `.onChange`, no manual wiring.
@@ -79,7 +91,7 @@ const controls = leva(schema, options?)
 const controls = leva({
   speed: 1,
   enabled: true,
-  label: 'hello',
+  username: 'MKebsi',
 });
 ```
 
@@ -87,11 +99,13 @@ const controls = leva({
 
 ```js
 const controls = leva({
-  speed: { value: 1, min: 0, max: 10, step: 0.1 },
+  speed: { value: 1, min: 0, max: 10, step: 0.1, label: 'SpeedMeter' },
 });
 ```
 
 #### Select
+
+Shorthand array syntax uses the values as labels:
 
 ```js
 const controls = leva({
@@ -99,11 +113,35 @@ const controls = leva({
 });
 ```
 
-#### Color (Not Ready)
+Map labels to internal values using the `options` object:
+
+```js
+const controls = leva({
+  size: {
+    options: {
+      small: 's',
+      medium: 'm',
+      large: 'l',
+      extraLarge: 'xl',
+    },
+  },
+});
+```
+
+#### Color
+
+Leva supports Hex, RGB, RGBA, HSL, and CSS strings out of the box:
 
 ```js
 const controls = leva({
   color: '#ff0000',
+  alphaColor: '#ff000055',
+  rgb: { r: 255, g: 0, b: 0 },
+  rgba: { r: 255, g: 0, b: 0, a: 0.5 },
+  oneDecimalRGB: { r: 1, g: 0, b: 0 },
+  hsl: { h: 100, s: 50, l: 0.5 },
+  cssHsl: 'hsl(100, 50%, 50%)',
+  cssRgb: 'rgb(255, 0, 0)',
 });
 ```
 
@@ -129,7 +167,7 @@ const cleanup = controls.effect(() => {
   console.log(controls.speed);
 });
 
-// stop the effect
+// stop the effect/proxy
 cleanup();
 ```
 

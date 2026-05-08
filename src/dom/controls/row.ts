@@ -33,12 +33,10 @@ export function createRow(getValue?: () => unknown) {
     const anim = control.animate(
       [
         { left: '-100%', offset: 0 },
-        { left: '0%', offset: 0.2 },
-        { left: '0%', offset: 0.8 },
         { left: '100%', offset: 1 },
       ],
       {
-        duration: 700,
+        duration: 500,
         easing: 'ease-in-out',
         pseudoElement: '::before',
         fill: 'none',

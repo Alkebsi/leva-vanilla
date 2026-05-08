@@ -43,10 +43,14 @@ type NoReservedKeys<T> = {
     : unknown;
 };
 
+type DeepWritable<T> = {
+  -readonly [P in keyof T]: DeepWritable<T[P]>;
+};
+
 export function leva<const T extends Schema>(
   schema: T & ValidateSchema<T> & NoReservedKeys<T>,
   options?: LevaOptions
-): InferState<T> & { effect: (fn: () => void) => () => void } {
+): DeepWritable<InferState<T>> & { effect: (fn: () => void) => () => void } {
   registerDefaults();
 
   for (const key in schema) {
@@ -72,7 +76,7 @@ export function leva<const T extends Schema>(
   });
 
   const proxy = createStateProxy(state, controllers, store);
-  const controls = proxy as InferState<T> & LevaStore;
+  const controls = proxy as DeepWritable<InferState<T>> & LevaStore;
 
   build(tree, state, controllers, store);
 

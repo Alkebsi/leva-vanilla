@@ -39,6 +39,7 @@ export function createButtonInput(key: string, controller: ButtonController) {
 
   // controller.onChange?.(sync);
 
+  control.classList.add('leva__control--button-parent');
   control.appendChild(button);
   labelContainer.remove();
   row.classList.add('leva__row--button');
