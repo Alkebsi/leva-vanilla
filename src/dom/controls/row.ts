@@ -73,8 +73,8 @@ export function setupCopy(
   clipboardBtn.onclick = async () => {
     const value = getValue();
     const textToCopy =
-      typeof value === 'object'
-        ? JSON.stringify(value, null, 2)
+      typeof value === 'object' && value !== null
+        ? JSON.stringify(value, null, 2).replace(/"(\w+)":/g, '$1:')
         : String(value);
     try {
       await navigator.clipboard.writeText(textToCopy);

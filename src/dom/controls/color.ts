@@ -1,7 +1,11 @@
 import type { ColorController } from '../../core/types';
 import { generateId } from '../../utils/generateId';
 import { createRow } from './row';
-import { parseColor, normalizedToHex } from '../../utils/color';
+import {
+  parseColor,
+  normalizedToHex,
+  normalizedToHex6,
+} from '../../utils/color';
 
 export function createColorInput(key: string, controller: ColorController) {
   const { container, control, label } = createRow(() => controller.value);
@@ -46,15 +50,20 @@ export function createColorInput(key: string, controller: ColorController) {
 
   const syncUI = () => {
     const value = controller.value;
-    if (textInput.value !== value) textInput.value = value;
 
     const parsed = parseColor(value);
     if (parsed) {
-      const hex = normalizedToHex(parsed.normalized);
-      if (picker.value !== hex) picker.value = hex;
+      const hex = normalizedToHex(parsed.rgba);
+      if (textInput.value !== hex) textInput.value = hex;
+
+      const hex6 = normalizedToHex6(parsed.rgba);
+      if (picker.value !== hex6) picker.value = hex6;
+
       preview.style.backgroundColor = hex;
     } else {
-      preview.style.backgroundColor = value;
+      const fallback = String(value);
+      if (textInput.value !== fallback) textInput.value = fallback;
+      preview.style.backgroundColor = fallback;
     }
   };
 
@@ -64,7 +73,7 @@ export function createColorInput(key: string, controller: ColorController) {
 
   textInput.addEventListener('change', () => {
     const parsed = parseColor(textInput.value);
-    if (parsed && parsed.kind === 'string') {
+    if (parsed) {
       controller.set(textInput.value);
     } else {
       syncUI();

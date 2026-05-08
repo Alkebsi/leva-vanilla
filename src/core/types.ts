@@ -43,7 +43,13 @@ export type NumberController = ValueController<number, 'number'> & {
 
 export type BooleanController = ValueController<boolean, 'boolean'>;
 
-export type ColorController = ValueController<string, 'color'>;
+export type ColorValue =
+  | string
+  | { r: number; g: number; b: number; a?: number }
+  | { h: number; s: number; l: number; a?: number }
+  | number[];
+
+export type ColorController = ValueController<ColorValue, 'color'>;
 
 export type SelectController = ValueController<string | number, 'select'> & {
   options: { label: string; value: string | number }[];
@@ -80,7 +86,11 @@ export interface ControlRegistry {
     value: boolean;
     controller: BooleanController;
   };
-  color: { input: ColorInput; value: string; controller: ColorController };
+  color: {
+    input: ColorInput;
+    value: ColorValue;
+    controller: ColorController;
+  };
   select: {
     input: SelectInput<SelectOptions>;
     value: string | number;
@@ -124,7 +134,7 @@ export type NumberInput = {
 };
 export type BooleanInput = { value: boolean; label?: string };
 export type StringInput = { value: string; label?: string };
-export type ColorInput = { value: string; label?: string };
+export type ColorInput = { value: ColorValue; label?: string };
 export type SelectOptions =
   | readonly (string | number)[]
   | Record<string, string | number>;

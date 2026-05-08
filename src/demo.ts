@@ -57,6 +57,16 @@ const controls = leva(
   {
     text: 'Some Text',
     color: { value: '#ff0000', label: 'TestColor' },
+
+    // Now, all of there colors input types can work!
+    // alphaColor: '#ff000055',
+    // rgb: { r: 255, g: 0, b: 0 },
+    // rgba: { r: 255, g: 0, b: 0, a: 0.5 },
+    // hsl: { h: 100, s: 50, l: 0.5 },
+    // cssHsl: 'hsl(100, 50%, 50%)',
+    // cssRgb: 'rgb(255, 0, 0)',
+    // rgb1x: { r: 1, g: 0, b: 0 },
+
     Numbers: {
       number: 10,
       stepped: { value: 5, step: 1 },

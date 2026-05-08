@@ -1,3 +1,5 @@
+import type { ColorValue } from '../core/types';
+
 type BaseNode<T, K extends string> = {
   key: string;
   type: K;
@@ -15,7 +17,7 @@ export type BooleanNode = BaseNode<boolean, 'boolean'>;
 
 export type StringNode = BaseNode<string, 'string'>;
 
-export type ColorNode = BaseNode<string, 'color'>;
+export type ColorNode = BaseNode<ColorValue, 'color'>;
 
 export type SelectOption = {
   label: string;

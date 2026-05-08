@@ -4,6 +4,7 @@ import type {
   InputSchema,
   RawInputValue,
 } from './descriptors';
+import { isColor } from '../utils/color';
 
 /* ---------------------------------- */
 /* Descriptor Whitelist               */
@@ -63,19 +64,25 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
       continue;
     }
 
-    // 3. primitive → wrap
+    // 3. Color detection (check objects/strings for color signatures)
+    if (isColor(input)) {
+      result[key] = normalizeValue(key, { value: input });
+      continue;
+    }
+
+    // 4. primitive → wrap
     if (typeof input !== 'object' || input === null) {
       result[key] = normalizeValue(key, { value: input });
       continue;
     }
 
-    // 4. descriptor
+    // 5. descriptor
     if (isDescriptor(input)) {
       result[key] = normalizeValue(key, input);
       continue;
     }
 
-    // 5. folder
+    // 6. folder
     if (isFolder(input)) {
       result[key] = {
         key,
@@ -95,10 +102,6 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
-
-function isColor(v: string): boolean {
-  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v);
 }
 
 function normalizeSelectOptions(
@@ -254,6 +257,16 @@ function normalizeValue(
     return {
       key,
       type: 'string',
+      value: v,
+      label,
+    };
+  }
+
+  // object or array colors
+  if (isColor(v)) {
+    return {
+      key,
+      type: 'color',
       value: v,
       label,
     };

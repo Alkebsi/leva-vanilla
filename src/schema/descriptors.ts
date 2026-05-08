@@ -1,3 +1,5 @@
+import type { ColorValue } from '../core/types';
+
 /* ---------------------------------- */
 /* Shared Types                       */
 /* ---------------------------------- */
@@ -29,7 +31,7 @@ export type BooleanDescriptor = BaseDescriptor<boolean>;
 
 export type StringDescriptor = BaseDescriptor<string>;
 
-export type ColorDescriptor = BaseDescriptor<string>;
+export type ColorDescriptor = BaseDescriptor<ColorValue>;
 
 export type SelectDescriptor = BaseDescriptor<string | number> & {
   options: SelectOptions;
@@ -63,4 +65,4 @@ export type InputSchema = {
 /* Raw Value (for normalize)          */
 /* ---------------------------------- */
 
-export type RawInputValue = number | string | boolean;
+export type RawInputValue = number | string | boolean | ColorValue;
