@@ -1,4 +1,4 @@
-import type { ColorValue } from '../core/types';
+import { type ColorValue } from '../utils/types';
 
 type BaseNode<T, K extends string> = {
   key: string;
@@ -40,6 +40,8 @@ export type FolderNode = {
   key: string;
   type: 'folder';
   children: Record<string, Node>;
+  label: string;
+  collapsed?: boolean;
 };
 
 export type Node =
@@ -52,8 +54,8 @@ export type Node =
   | FolderNode;
 
 export type NodeMap = {
-  [K in keyof Node]: {
+  [K in Node['type']]: {
     type: K;
-    value: Node[K] extends { value: infer V } ? V : never;
+    value: Extract<Node, { type: K }> extends { value: infer V } ? V : never;
   };
 };

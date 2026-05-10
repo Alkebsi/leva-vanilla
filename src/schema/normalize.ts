@@ -1,9 +1,12 @@
 import type { Node, SelectOption } from './nodes';
 import type {
   ButtonDescriptor,
+  FolderSettings,
   InputSchema,
   RawInputValue,
+  SelectOptions,
 } from './descriptors';
+import type { ColorValue } from '../utils/types';
 import { isColor } from '../utils/color';
 
 /* ---------------------------------- */
@@ -29,11 +32,34 @@ const SELECT_DESCRIPTOR_KEYS = new Set([...BASE_DESCRIPTOR_KEYS, 'options']);
 /* Normalize Entry                    */
 /* ---------------------------------- */
 
+type FolderInput = {
+  $?: FolderSettings | boolean;
+  label?: string;
+  collapsed?: boolean;
+} & InputSchema;
+
 const normalize = (schema: InputSchema): Record<string, Node> => {
   const result: Record<string, Node> = {};
 
   for (const key in schema) {
     const input = schema[key];
+
+    // 0. Forced folder check ($)
+    if (isPlainObject(input) && '$' in input) {
+      const { $, label, collapsed, ...children } = input as FolderInput;
+      const settings = isPlainObject($) ? $ : {};
+
+      result[key] = {
+        key,
+        type: 'folder',
+        label: settings.label || (typeof label === 'string' ? label : key),
+        collapsed:
+          settings.collapsed ??
+          (typeof collapsed === 'boolean' ? collapsed : undefined),
+        children: normalize(children as InputSchema),
+      };
+      continue;
+    }
 
     if (Array.isArray(input)) {
       throw new Error(
@@ -66,13 +92,13 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
 
     // 3. Color detection (check objects/strings for color signatures)
     if (isColor(input)) {
-      result[key] = normalizeValue(key, { value: input });
+      result[key] = normalizeValue(key, { value: input as RawInputValue });
       continue;
     }
 
     // 4. primitive → wrap
     if (typeof input !== 'object' || input === null) {
-      result[key] = normalizeValue(key, { value: input });
+      result[key] = normalizeValue(key, { value: input as RawInputValue });
       continue;
     }
 
@@ -82,12 +108,16 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
       continue;
     }
 
-    // 6. folder
-    if (isFolder(input)) {
+    // 6. implicit folder
+    if (isPlainObject(input)) {
+      const { label, collapsed, ...children } = input as FolderInput;
+
       result[key] = {
         key,
         type: 'folder',
-        children: normalize(input),
+        label: typeof label === 'string' ? label : key,
+        collapsed: typeof collapsed === 'boolean' ? collapsed : undefined,
+        children: normalize(children as InputSchema),
       };
       continue;
     }
@@ -122,25 +152,16 @@ function normalizeSelectOptions(
 
 function isDescriptor(
   input: unknown
-): input is { value: RawInputValue } & Record<string, unknown> {
-  return (
-    typeof input === 'object' &&
-    input !== null &&
-    ('value' in input || 'options' in input)
-  );
+): input is
+  | { value: RawInputValue; label?: string }
+  | { options: unknown; value?: RawInputValue; label?: string } {
+  return isPlainObject(input) && ('value' in input || 'options' in input);
 }
 
 function isButtonDescriptor(input: unknown): input is ButtonDescriptor {
-  if (typeof input !== 'object' || input === null) return false;
-  const obj = input as Record<string, unknown>;
-  return typeof obj.onClick === 'function';
-}
-
-function isFolder(input: unknown): input is InputSchema {
-  if (!isPlainObject(input)) return false;
-
-  return Object.values(input).every(
-    (v) => isPlainObject(v) || typeof v !== 'object' || isDescriptor(v)
+  return (
+    isPlainObject(input) &&
+    typeof (input as Record<string, unknown>).onClick === 'function'
   );
 }
 
@@ -175,11 +196,9 @@ function normalizeValue(
   if ('options' in input) {
     assertNoUnknownKeys(key, input, SELECT_DESCRIPTOR_KEYS);
 
-    const options = normalizeSelectOptions(
-      input.options as string[] | Record<string, string | number>
-    );
+    const options = normalizeSelectOptions(input.options as SelectOptions);
 
-    let value: string | number;
+    let value: string | number | undefined;
 
     if (input.value !== undefined) {
       if (typeof input.value !== 'string' && typeof input.value !== 'number') {
@@ -193,12 +212,14 @@ function normalizeValue(
       value = options[0]?.value;
     }
 
-    const isValid = (v: string | number) => options.some((o) => o.value === v);
+    const isValid = (v: unknown): v is string | number =>
+      (typeof v === 'string' || typeof v === 'number') &&
+      options.some((o) => o.value === v);
 
     if (!isValid(value)) {
       throw new Error(
         `[leva] Invalid initial value "${value}" for "${key}". Must be one of: ${options
-          .map((o) => o.value)
+          .map((o) => String(o.value))
           .join(', ')}`
       );
     }
@@ -249,7 +270,7 @@ function normalizeValue(
       return {
         key,
         type: 'color',
-        value: v,
+        value: v as ColorValue,
         label,
       };
     }
@@ -267,7 +288,7 @@ function normalizeValue(
     return {
       key,
       type: 'color',
-      value: v,
+      value: v as ColorValue,
       label,
     };
   }

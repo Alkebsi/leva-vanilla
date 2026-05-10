@@ -1,4 +1,6 @@
 import type { Node } from '../schema/nodes';
+import type { FolderSettings } from '../schema/descriptors';
+import type { ColorValue } from '../utils/types';
 /* ---------------------------------- */
 /* Internal Reactivity Types          */
 /* ---------------------------------- */
@@ -43,12 +45,6 @@ export type NumberController = ValueController<number, 'number'> & {
 
 export type BooleanController = ValueController<boolean, 'boolean'>;
 
-export type ColorValue =
-  | string
-  | { r: number; g: number; b: number; a?: number }
-  | { h: number; s: number; l: number; a?: number }
-  | number[];
-
 export type ColorController = ValueController<ColorValue, 'color'>;
 
 export type SelectController = ValueController<string | number, 'select'> & {
@@ -70,11 +66,6 @@ export type ButtonController = BaseController<'button'> & {
 /* ---------------------------------- */
 /* Folder Types                       */
 /* ---------------------------------- */
-export type FolderSettings = {
-  label?: string;
-  collapsed?: boolean;
-};
-
 /* ---------------------------------- */
 /* The Plugin Registry                */
 /* ---------------------------------- */
@@ -118,12 +109,12 @@ type InternalKeys =
   | 'value'
   | 'onClick'
   | 'trigger'
-  | '$'
   | 'min'
   | 'max'
   | 'step'
   | 'label'
-  | 'disabled';
+  | 'disabled'
+  | '$';
 
 export type NumberInput = {
   value: number;
@@ -131,10 +122,23 @@ export type NumberInput = {
   max?: number;
   step?: number;
   label?: string;
+  $?: FolderSettings | boolean;
 };
-export type BooleanInput = { value: boolean; label?: string };
-export type StringInput = { value: string; label?: string };
-export type ColorInput = { value: ColorValue; label?: string };
+export type BooleanInput = {
+  value: boolean;
+  label?: string;
+  $?: FolderSettings | boolean;
+};
+export type StringInput = {
+  value: string;
+  label?: string;
+  $?: FolderSettings | boolean;
+};
+export type ColorInput = {
+  value: ColorValue;
+  label?: string;
+  $?: FolderSettings | boolean;
+};
 export type SelectOptions =
   | readonly (string | number)[]
   | Record<string, string | number>;
@@ -142,11 +146,13 @@ export type SelectInput<O extends SelectOptions> = {
   options: O;
   value?: GetSelectValue<O>;
   label?: string;
+  $?: FolderSettings | boolean;
 };
 export type ButtonInput = {
   onClick: (...args: unknown[]) => void;
   label?: string;
   disabled?: boolean;
+  $?: FolderSettings | boolean;
 };
 
 /* ---------------------------------- */
@@ -204,9 +210,13 @@ export type ValidateSchema<T> = {
           ? T[K]
           : T[K] extends Record<string, unknown>
             ? K extends '$'
-              ? FolderSettings
+              ? StrictFolderSettings<T[K]>
               : ValidateSchema<T[K]>
             : T[K];
+};
+
+type StrictFolderSettings<T> = FolderSettings & {
+  [K in keyof T]: K extends keyof FolderSettings ? T[K] : never;
 };
 
 type LookupInput<V> = {

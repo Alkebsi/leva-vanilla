@@ -1,7 +1,8 @@
-import type { ColorController, ReactiveStore, ColorValue } from './types';
+import type { ColorController, ReactiveStore } from './types';
 import type { Node } from '../schema/nodes';
 import { trigger } from './reactive/deps';
 import { parseColor, formatColor } from '../utils/color';
+import type { ColorValue } from '../utils/types';
 
 type ColorNode = Extract<Node, { type: 'color' }>;
 

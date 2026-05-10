@@ -8,7 +8,7 @@ import { createBooleanInput } from './controls/boolean';
 import { createSelectInput } from './controls/select';
 import { createColorInput } from './controls/color';
 import { createButtonInput } from './controls/button';
-import type { AnyController, FolderSettings } from '../core/types';
+import type { AnyController } from '../core/types';
 import { createFolder } from './folder';
 import type { Node } from '../schema/nodes';
 
@@ -281,61 +281,24 @@ function renderControls(controls: Controls, container: HTMLElement) {
   _renderControlsRecursive(controls._tree, controllers, container, []);
 }
 
-function extractSettings(config: Node | undefined): FolderSettings {
-  const settings: FolderSettings = {};
-  if (!config || typeof config !== 'object') return settings;
-
-  const data = config as Record<string, unknown>;
-
-  if (data['label'] !== undefined) settings.label = String(data['label']);
-  if (data['collapsed'] !== undefined)
-    settings.collapsed = Boolean(data['collapsed']);
-
-  const value = data['value'];
-  if (value && typeof value === 'object') {
-    const v = value as Record<string, unknown>;
-    if (settings.label === undefined && v['label'] !== undefined)
-      settings.label = String(v['label']);
-    if (settings.collapsed === undefined && v['collapsed'] !== undefined)
-      settings.collapsed = Boolean(v['collapsed']);
-  }
-
-  const children = data['children'];
-  if (children && typeof children === 'object') {
-    const c = children as Record<string, unknown>;
-    const getVal = (v: unknown): unknown =>
-      v && typeof v === 'object' && 'value' in v
-        ? (v as Record<string, unknown>)['value']
-        : v;
-
-    if (settings.label === undefined && c['label'] !== undefined)
-      settings.label = String(getVal(c['label']));
-    if (settings.collapsed === undefined && c['collapsed'] !== undefined)
-      settings.collapsed = Boolean(getVal(c['collapsed']));
-  }
-
-  return settings;
-}
-
 function _renderControlsRecursive(
   tree: Record<string, Node>,
   controllers: Record<string, AnyController>,
   container: HTMLElement,
   path: string[]
 ) {
-  const keys = Object.keys(tree).filter((k) => k !== '$');
-
-  keys.forEach((key) => {
+  for (const key in tree) {
     const node = tree[key];
     const fullPath = [...path, key].join('.');
 
     if (node.type === 'folder') {
-      const folderNode = node;
-      const folderSettings = extractSettings(folderNode.children?.['$']);
+      const folderElements = createFolder(container, key, {
+        label: node.label,
+        collapsed: node.collapsed,
+      });
 
-      const folderElements = createFolder(container, key, folderSettings);
       _renderControlsRecursive(
-        folderNode.children,
+        node.children,
         controllers,
         folderElements.content,
         [...path, key]
@@ -352,5 +315,5 @@ function _renderControlsRecursive(
         );
       }
     }
-  });
+  }
 }

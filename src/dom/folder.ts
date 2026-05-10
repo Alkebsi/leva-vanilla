@@ -1,5 +1,5 @@
 import icons from '../icons';
-import type { FolderSettings } from '../core/types';
+import type { FolderSettings } from '../schema/descriptors';
 
 export function createFolder(
   parent: HTMLElement,

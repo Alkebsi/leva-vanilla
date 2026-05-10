@@ -1,10 +1,10 @@
-import type { ColorValue } from '../core/types';
+import type { ColorValue } from '../utils/types';
 
 /* ---------------------------------- */
 /* Shared Types                       */
 /* ---------------------------------- */
 
-type Primitive = number | string | boolean;
+export type RawInputValue = number | string | boolean | ColorValue;
 
 export type SelectOptions = string[] | Record<string, string | number>;
 
@@ -13,8 +13,9 @@ export type SelectOptions = string[] | Record<string, string | number>;
 /* ---------------------------------- */
 
 type BaseDescriptor<T> = {
-  value?: T;
+  value: T;
   label?: string;
+  $?: FolderSettings | boolean;
 };
 
 /* ---------------------------------- */
@@ -33,14 +34,23 @@ export type StringDescriptor = BaseDescriptor<string>;
 
 export type ColorDescriptor = BaseDescriptor<ColorValue>;
 
-export type SelectDescriptor = BaseDescriptor<string | number> & {
+export type SelectDescriptor = {
+  value?: string | number;
   options: SelectOptions;
+  label?: string;
+  $?: FolderSettings | boolean;
 };
 
 export type ButtonDescriptor = {
   onClick: () => void;
   label?: string;
   disabled?: boolean;
+  $?: FolderSettings | boolean;
+};
+
+export type FolderSettings = {
+  label?: string;
+  collapsed?: boolean;
 };
 
 /* ---------------------------------- */
@@ -48,21 +58,15 @@ export type ButtonDescriptor = {
 /* ---------------------------------- */
 
 export type Input =
-  | Primitive
+  | RawInputValue
   | NumberDescriptor
   | BooleanDescriptor
   | StringDescriptor
   | ColorDescriptor
   | SelectDescriptor
   | ButtonDescriptor
-  | InputSchema; // folder
+  | (InputSchema & { $?: FolderSettings | boolean });
 
 export type InputSchema = {
   [key: string]: Input;
 };
-
-/* ---------------------------------- */
-/* Raw Value (for normalize)          */
-/* ---------------------------------- */
-
-export type RawInputValue = number | string | boolean | ColorValue;
