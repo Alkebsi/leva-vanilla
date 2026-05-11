@@ -34,7 +34,7 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
     '.leva__icons--search-icon'
   )!;
   const searchInput = searchBar.querySelector<HTMLInputElement>(
-    '#leva__search-input'
+    '.leva__search-input'
   )!;
   const xBtn = searchBar.querySelector<HTMLElement>('#leva__search-x-button')!;
 

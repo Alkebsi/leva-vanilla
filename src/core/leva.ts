@@ -21,6 +21,7 @@ import { mountDOM } from '../dom/gui';
 type LevaOptions = {
   collapsed?: boolean;
   title?: string;
+  panel?: string;
   gui?: boolean;
 };
 
@@ -83,6 +84,7 @@ export function leva<const T extends Schema>(
   if (options?.gui !== false) {
     mountDOM(controls, {
       title: options?.title,
+      panel: options?.panel,
       collapsed: options?.collapsed,
     });
   }

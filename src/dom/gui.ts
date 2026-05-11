@@ -51,11 +51,24 @@ export type LevaGUI = ReturnType<typeof createGUIRoot> & {
   isOpen: () => boolean;
 };
 
+const panelRegistry = new Map<string, LevaGUI>();
+
 export function mountDOM(
   controls: Controls,
-  options: { title?: string; collapsed?: boolean } = {}
+  options: { title?: string; collapsed?: boolean; panel?: string } = {}
 ) {
-  const elements = createGUIRoot(document.body, options.title);
+  const panelId = options.panel || 'default';
+  let gui = panelRegistry.get(panelId);
+
+  if (gui) {
+    renderControls(controls, gui.content);
+    return gui;
+  }
+
+  const elements = createGUIRoot(
+    document.body,
+    options.title || (panelId === 'default' ? 'Leva' : panelId)
+  );
   const _rowCache: LevaGUI['_rowCache'] = [];
   let _cacheRebuildId: number | undefined;
   let _heightAnim: Animation | undefined;
@@ -192,7 +205,7 @@ export function mountDOM(
     }
   };
 
-  const gui: LevaGUI = {
+  gui = {
     ...elements,
     _rowCache,
     buildRowCache,
@@ -201,6 +214,7 @@ export function mountDOM(
     isOpen: () => _isOpen,
   };
 
+  panelRegistry.set(panelId, gui);
   renderControls(controls, gui.content);
   setupHeaderInteractivity(gui);
 
@@ -249,7 +263,7 @@ export function createGUIRoot(
   const searchInput = document.createElement('input');
   searchInput.placeholder = '[Open filter with CMD+SHIFT+L]';
   searchInput.name = 'leva__search-input';
-  searchInput.id = 'leva__search-input';
+  searchInput.className = 'leva__search-input';
 
   const xBtn = document.createElement('i');
   xBtn.innerHTML = icons.cross;
