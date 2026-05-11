@@ -6,6 +6,7 @@ export function createStore(): ReactiveStore {
     depsMap: new Map(),
     activeEffect: null,
     effectStack: [],
+    effectCleanups: new Set(),
   };
 }
 

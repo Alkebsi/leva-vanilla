@@ -10,9 +10,11 @@ import type {
   InferState,
   ReactiveStore,
   Schema,
+  LevaStore,
   ValidateSchema,
 } from './types';
 import { mountDOM } from '../dom/gui';
+import type { Controls } from '../dom/types';
 
 /* ---------------------------------- */
 /* Options                           */
@@ -25,18 +27,12 @@ type LevaOptions = {
   gui?: boolean;
 };
 
-export type LevaStore = {
-  _tree: Record<string, Node>;
-  _controllers: Record<string, AnyController>;
-  effect: (fn: () => void) => () => void;
-};
-
 /* ---------------------------------- */
 /* Public API                        */
 /* ---------------------------------- */
 
-type ReservedKeys = 'effect' | '_tree' | '_controllers';
-const RESERVED_KEYS = ['effect', '_tree', '_controllers'] as const;
+type ReservedKeys = 'effect' | '_tree' | '_controllers' | 'dispose';
+const RESERVED_KEYS = ['effect', '_tree', '_controllers', 'dispose'] as const;
 
 type NoReservedKeys<T> = {
   [K in keyof T]: K extends ReservedKeys
@@ -51,7 +47,7 @@ type DeepWritable<T> = {
 export function leva<const T extends Schema>(
   schema: T & ValidateSchema<T> & NoReservedKeys<T>,
   options?: LevaOptions
-): DeepWritable<InferState<T>> & { effect: (fn: () => void) => () => void } {
+): DeepWritable<InferState<T>> & LevaStore {
   registerDefaults();
 
   for (const key in schema) {
@@ -65,15 +61,33 @@ export function leva<const T extends Schema>(
   const tree = normalize(schema as unknown as Parameters<typeof normalize>[0]);
 
   const store = createStore();
+
   const state: Record<string, unknown> = {};
   const controllers: Record<string, AnyController> = {};
 
-  const boundEffect = (fn: () => void) => effect(store, fn);
+  const boundEffect = (fn: () => void) => {
+    const unSub = effect(store, fn);
+    store.effectCleanups.add(unSub);
+    return () => {
+      unSub();
+      store.effectCleanups.delete(unSub);
+    };
+  };
+
+  let domCleanup: (() => void) | undefined;
+  const dispose = () => {
+    if (domCleanup) domCleanup();
+    store.effectCleanups.forEach((cleanup) => cleanup());
+    store.effectCleanups.clear();
+    store.depsMap.clear();
+    for (const key in controllers) delete controllers[key];
+  };
 
   Object.defineProperties(state, {
     _tree: { value: tree, enumerable: false },
     _controllers: { value: controllers, enumerable: false },
     effect: { value: boundEffect, enumerable: false },
+    dispose: { value: dispose, enumerable: false },
   });
 
   const proxy = createStateProxy(state, controllers, store);
@@ -82,7 +96,7 @@ export function leva<const T extends Schema>(
   build(tree, state, controllers, store);
 
   if (options?.gui !== false) {
-    mountDOM(controls, {
+    domCleanup = mountDOM(controls as Controls, {
       title: options?.title,
       panel: options?.panel,
       collapsed: options?.collapsed,

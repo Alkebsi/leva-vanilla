@@ -5,4 +5,5 @@ export type Controls = {
   _tree: Record<string, Node>;
   _controllers: Record<string, AnyController>;
   effect: (fn: () => void) => () => void;
+  dispose: () => void;
 };
