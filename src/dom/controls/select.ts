@@ -12,6 +12,8 @@ export function createSelectInput(key: string, controller: SelectController) {
   const { container, control, label } = createRow(() => controller.value);
 
   const elementId = generateId(`leva__${key}`);
+
+  label.htmlFor = elementId;
   label.textContent = controller.label;
 
   // Trigger
