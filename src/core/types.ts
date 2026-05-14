@@ -10,13 +10,7 @@ export interface ReactiveStore {
   depsMap: Map<string, Dep>;
   activeEffect: Effect | null;
   effectStack: Effect[];
-  effectCleanups: Set<() => void>;
 }
-
-export type LevaStore = {
-  effect: (fn: () => void) => () => void;
-  dispose: () => void;
-};
 
 export type Effect = {
   run: () => void;

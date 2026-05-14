@@ -60,25 +60,9 @@ export function mountDOM(
   const panelId = options.panel || 'default';
   let gui = panelRegistry.get(panelId);
 
-  const group = document.createElement('div');
-  group.className = 'leva__group';
-  group.style.display = 'contents';
-
-  const cleanup = () => {
-    group.remove();
-    if (gui) {
-      gui.adjustHeight(true);
-      if (gui.content.children.length === 0) {
-        gui.root.remove();
-        panelRegistry.delete(panelId);
-      }
-    }
-  };
-
   if (gui) {
-    gui.content.appendChild(group);
-    renderControls(controls, group);
-    return cleanup;
+    renderControls(controls, gui.content);
+    return gui;
   }
 
   const elements = createGUIRoot(
@@ -231,8 +215,7 @@ export function mountDOM(
   };
 
   panelRegistry.set(panelId, gui);
-  gui.content.appendChild(group);
-  renderControls(controls, group);
+  renderControls(controls, gui.content);
   setupHeaderInteractivity(gui);
 
   if (!_isOpen) {
@@ -255,11 +238,10 @@ export function mountDOM(
   });
   observer.observe(gui.content, {
     childList: true,
-    subtree: true,
   });
   buildRowCache();
 
-  return cleanup;
+  return gui;
 }
 
 export function createGUIRoot(
