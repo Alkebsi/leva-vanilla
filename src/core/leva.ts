@@ -7,7 +7,6 @@ import { registerDefaults } from './bootstrap';
 import { createController } from './registry';
 import type {
   AnyController,
-  InferState,
   ReactiveStore,
   Schema,
   ValidateSchema,
@@ -45,13 +44,19 @@ type NoReservedKeys<T> = {
 };
 
 type DeepWritable<T> = {
-  -readonly [P in keyof T]: DeepWritable<T[P]>;
+  -readonly [K in keyof T]: T[K] extends object
+    ? DeepWritable<T[K]>
+    : T[K] extends boolean
+      ? boolean
+      : T[K] extends number
+        ? number
+        : T[K];
 };
 
 export function leva<const T extends Schema>(
   schema: T & ValidateSchema<T> & NoReservedKeys<T>,
   options?: LevaOptions
-): DeepWritable<InferState<T>> & { effect: (fn: () => void) => () => void } {
+) {
   registerDefaults();
 
   for (const key in schema) {
@@ -77,7 +82,7 @@ export function leva<const T extends Schema>(
   });
 
   const proxy = createStateProxy(state, controllers, store);
-  const controls = proxy as DeepWritable<InferState<T>> & LevaStore;
+  const controls = proxy as LevaStore;
 
   build(tree, state, controllers, store);
 
@@ -89,7 +94,8 @@ export function leva<const T extends Schema>(
     });
   }
 
-  return controls;
+  return controls as unknown as Omit<LevaStore, '_tree' | '_controllers'> &
+    DeepWritable<T>;
 }
 
 /* ---------------------------------- */
