@@ -14,6 +14,7 @@ export function createColorController(
   store: ReactiveStore
 ): ColorController {
   const listeners = new Set<(v: ColorValue) => void>();
+  const disposeListeners = new Set<() => void>();
 
   // Detect initial format info
   const initial = parseColor(state[key]);
@@ -44,6 +45,16 @@ export function createColorController(
     onChange(fn) {
       listeners.add(fn);
       return () => listeners.delete(fn);
+    },
+
+    dispose() {
+      disposeListeners.forEach((fn) => fn());
+      disposeListeners.clear();
+    },
+
+    onDispose(fn) {
+      disposeListeners.add(fn);
+      return () => disposeListeners.delete(fn);
     },
   };
 }

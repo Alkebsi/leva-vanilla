@@ -20,13 +20,11 @@ export function createBooleanInput(key: string, controller: BooleanController) {
   domReplacement.className = 'leva__input--checkbox-label';
   domReplacement.innerHTML = icons.checkbox;
 
-  input.addEventListener('change', () => {
-    controller.set(input.checked);
-  });
+  const handleChange = () => controller.set(input.checked);
+  input.addEventListener('change', handleChange);
 
-  controller.onChange((v) => {
-    input.checked = v;
-  });
+  const sync = (v: boolean) => (input.checked = v);
+  const unsubscribe = controller.onChange(sync);
 
   label.htmlFor = elementId;
   label.textContent = controller.label;
@@ -36,6 +34,14 @@ export function createBooleanInput(key: string, controller: BooleanController) {
 
   domReplacement.htmlFor = elementId;
   control.append(domReplacement);
+
+  const cleanup = () => {
+    input.removeEventListener('change', handleChange);
+    unsubscribe();
+    container.remove();
+  };
+
+  controller.onDispose(cleanup);
 
   return container;
 }

@@ -28,13 +28,19 @@ export function createStringInput(key: string, controller: StringController) {
     input.value = value;
   };
 
-  input.addEventListener('input', () => {
-    controller.set(input.value);
-  });
+  const handleInput = () => controller.set(input.value);
+  input.addEventListener('input', handleInput);
 
-  controller.onChange(syncFromController);
+  const unsubscribe = controller.onChange(syncFromController);
 
   syncFromController();
+
+  const cleanup = () => {
+    input.removeEventListener('input', handleInput);
+    unsubscribe();
+    container.remove();
+  };
+  controller.onDispose(cleanup);
 
   return container;
 }

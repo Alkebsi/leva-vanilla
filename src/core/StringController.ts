@@ -12,6 +12,7 @@ export function createStringController(
   store: ReactiveStore
 ): StringController {
   const listeners = new Set<(v: string) => void>();
+  const disposeListeners = new Set<() => void>();
 
   return {
     key: path,
@@ -35,6 +36,16 @@ export function createStringController(
     onChange(fn) {
       listeners.add(fn);
       return () => listeners.delete(fn);
+    },
+
+    dispose() {
+      disposeListeners.forEach((fn) => fn());
+      disposeListeners.clear();
+    },
+
+    onDispose(fn) {
+      disposeListeners.add(fn);
+      return () => disposeListeners.delete(fn);
     },
   };
 }

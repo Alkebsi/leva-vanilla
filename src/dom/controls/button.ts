@@ -8,6 +8,8 @@ type ButtonController = {
   label: string;
   disabled?: boolean;
   onChange?: (fn: () => void) => () => void;
+  dispose: () => void;
+  onDispose: (fn: () => void) => void;
 };
 
 export function createButtonInput(key: string, controller: ButtonController) {
@@ -37,12 +39,16 @@ export function createButtonInput(key: string, controller: ButtonController) {
 
   button.addEventListener('click', handleClick);
 
-  // controller.onChange?.(sync);
+  const cleanup = () => {
+    button.removeEventListener('click', handleClick);
+    container.remove();
+  };
+
+  controller.onDispose(cleanup);
 
   control.classList.add('leva__control--button-parent');
   control.appendChild(button);
   labelContainer.remove();
-  row.classList.add('leva__row--button');
 
   sync();
 

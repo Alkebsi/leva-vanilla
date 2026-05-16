@@ -10,7 +10,8 @@ export function createButtonController(
   node: ButtonNode,
   _store: ReactiveStore
 ): ButtonController {
-  void _store; // remove unused vars while keeping contract
+  void _store;
+  const disposeListeners = new Set<() => void>();
 
   return {
     key: path,
@@ -18,5 +19,13 @@ export function createButtonController(
     trigger: node.trigger,
     label: node.label,
     disabled: node.disabled,
+    dispose() {
+      disposeListeners.forEach((fn) => fn());
+      disposeListeners.clear();
+    },
+    onDispose(fn) {
+      disposeListeners.add(fn);
+      return () => disposeListeners.delete(fn);
+    },
   };
 }

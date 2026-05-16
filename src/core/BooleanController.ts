@@ -12,6 +12,7 @@ export function createBooleanController(
   store: ReactiveStore
 ): BooleanController {
   const listeners = new Set<(v: boolean) => void>();
+  const disposeListeners = new Set<() => void>();
 
   return {
     key: path,
@@ -33,5 +34,15 @@ export function createBooleanController(
       return () => listeners.delete(fn);
     },
     label: node.label,
+
+    dispose() {
+      disposeListeners.forEach((fn) => fn());
+      disposeListeners.clear();
+    },
+
+    onDispose(fn) {
+      disposeListeners.add(fn);
+      return () => disposeListeners.delete(fn);
+    },
   };
 }

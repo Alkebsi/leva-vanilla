@@ -13,6 +13,7 @@ export function createSelectController(
 ): SelectController {
   const options = node.options;
   const listeners = new Set<(v: string | number) => void>();
+  const disposeListeners = new Set<() => void>();
 
   const isValid = (v: string | number) => options.some((o) => o.value === v);
 
@@ -41,6 +42,16 @@ export function createSelectController(
     onChange(fn) {
       listeners.add(fn);
       return () => listeners.delete(fn);
+    },
+
+    dispose() {
+      disposeListeners.forEach((fn) => fn());
+      disposeListeners.clear();
+    },
+
+    onDispose(fn) {
+      disposeListeners.add(fn);
+      return () => disposeListeners.delete(fn);
     },
 
     options,

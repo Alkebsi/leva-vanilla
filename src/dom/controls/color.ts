@@ -67,23 +67,31 @@ export function createColorInput(key: string, controller: ColorController) {
     }
   };
 
-  picker.addEventListener('input', () => {
-    controller.set(picker.value);
-  });
+  const handlePickerInput = () => controller.set(picker.value);
+  picker.addEventListener('input', handlePickerInput);
 
-  textInput.addEventListener('change', () => {
+  const handleTextChange = () => {
     const parsed = parseColor(textInput.value);
     if (parsed) {
       controller.set(textInput.value);
     } else {
       syncUI();
     }
-  });
+  };
+  textInput.addEventListener('change', handleTextChange);
 
-  controller.onChange(syncUI);
+  const unsubscribe = controller.onChange(syncUI);
 
   // Init
   syncUI();
+
+  const cleanup = () => {
+    picker.removeEventListener('input', handlePickerInput);
+    textInput.removeEventListener('change', handleTextChange);
+    unsubscribe();
+    container.remove();
+  };
+  controller.onDispose(cleanup);
 
   return container;
 }

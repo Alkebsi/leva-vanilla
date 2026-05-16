@@ -19,7 +19,8 @@ export function createStateProxy<T extends Record<string, unknown>>(
         typeof key === 'symbol' ||
         key === '_tree' ||
         key === '_controllers' ||
-        key === 'effect'
+        key === 'effect' ||
+        key === 'remove'
       )
         return value;
 

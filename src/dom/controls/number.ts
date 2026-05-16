@@ -222,12 +222,24 @@ export function createNumberInput(key: string, controller: NumberController) {
 
   document.addEventListener('pointerlockchange', onPointerLockChange);
 
-  controller.onChange(syncFromController);
+  const unsubscribe = controller.onChange(syncFromController);
 
   /* ---------- Init ---------- */
 
   sync();
   syncFromController();
+
+  const cleanup = () => {
+    input.removeEventListener('input', handleInput);
+    input.removeEventListener('keydown', handleKeydown);
+    slider.root.removeEventListener('pointerdown', handleSliderPointerDown);
+    stepper.onpointerdown = null;
+    targets.forEach((t) => t.removeEventListener('wheel', handleWheel));
+    document.removeEventListener('pointerlockchange', onPointerLockChange);
+    unsubscribe();
+    container.remove();
+  };
+  controller.onDispose(cleanup);
 
   return container;
 }

@@ -133,13 +133,21 @@ export function createSelectInput(key: string, controller: SelectController) {
   trigger.onclick = toggle;
   document.addEventListener('click', handleOutsideClick);
 
-  controller.onChange(sync);
+  const unsubscribe = controller.onChange(sync);
 
   /* ---------------------------------- */
   /* Init                               */
   /* ---------------------------------- */
 
   buildOptions();
+
+  const cleanup = () => {
+    document.removeEventListener('click', handleOutsideClick);
+    unsubscribe();
+    dropdown.remove();
+    container.remove();
+  };
+  controller.onDispose(cleanup);
 
   return container;
 }

@@ -12,6 +12,7 @@ export function createNumberController(
   store: ReactiveStore
 ): NumberController {
   const listeners = new Set<(v: number) => void>();
+  const disposeListeners = new Set<() => void>();
 
   return {
     key: path,
@@ -43,6 +44,16 @@ export function createNumberController(
     onChange(fn) {
       listeners.add(fn);
       return () => listeners.delete(fn);
+    },
+
+    dispose() {
+      disposeListeners.forEach((fn) => fn());
+      disposeListeners.clear();
+    },
+
+    onDispose(fn) {
+      disposeListeners.add(fn);
+      return () => disposeListeners.delete(fn);
     },
   };
 }

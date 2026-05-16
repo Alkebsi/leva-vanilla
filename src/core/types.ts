@@ -30,6 +30,8 @@ export type ValueController<T, Type extends string> = BaseController<Type> & {
   set: (v: T) => void;
   onChange: (fn: (v: T) => void) => () => void;
   label: string;
+  dispose: () => void;
+  onDispose: (fn: () => void) => void;
 };
 
 /* ---------------------------------- */
@@ -61,6 +63,8 @@ export type ButtonController = BaseController<'button'> & {
   trigger: () => void;
   label: string;
   disabled?: boolean;
+  dispose: () => void;
+  onDispose: (fn: () => void) => void;
 };
 
 /* ---------------------------------- */

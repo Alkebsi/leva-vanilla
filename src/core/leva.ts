@@ -2,7 +2,7 @@ import normalize from '../schema/normalize';
 import type { Node } from '../schema/nodes';
 import { createStateProxy } from './reactive/proxy';
 import { effect } from './reactive/effect';
-import { createStore } from './reactive/deps';
+import { createStore, trigger } from './reactive/deps';
 import { registerDefaults } from './bootstrap';
 import { createController } from './registry';
 import type {
@@ -28,14 +28,15 @@ export type LevaStore = {
   _tree: Record<string, Node>;
   _controllers: Record<string, AnyController>;
   effect: (fn: () => void) => () => void;
+  remove: (path: string) => void;
 };
 
 /* ---------------------------------- */
 /* Public API                        */
 /* ---------------------------------- */
 
-type ReservedKeys = 'effect' | '_tree' | '_controllers';
-const RESERVED_KEYS = ['effect', '_tree', '_controllers'] as const;
+type ReservedKeys = 'effect' | 'remove' | '_tree' | '_controllers';
+const RESERVED_KEYS = ['effect', 'remove', '_tree', '_controllers'] as const;
 
 type NoReservedKeys<T> = {
   [K in keyof T]: K extends ReservedKeys
@@ -75,10 +76,20 @@ export function leva<const T extends Schema>(
 
   const boundEffect = (fn: () => void) => effect(store, fn);
 
+  const remove = (path: string) => {
+    const controller = (controllers as Record<string, AnyController>)[path];
+    if (controller) {
+      controller.dispose();
+      delete controllers[path];
+      trigger(store, path);
+    } else console.warn(`[leva] No control found at path: "${path}"`);
+  };
+
   Object.defineProperties(state, {
     _tree: { value: tree, enumerable: false },
     _controllers: { value: controllers, enumerable: false },
     effect: { value: boundEffect, enumerable: false },
+    remove: { value: remove, enumerable: false },
   });
 
   const proxy = createStateProxy(state, controllers, store);
@@ -142,12 +153,25 @@ function build(
     // Controller creation
     // -------------------------
     const pathString = fullPath.join('.');
-    controllers[pathString] = createController(
+
+    const oldController = controllers[pathString];
+
+    if (oldController) {
+      oldController.dispose();
+    }
+
+    const controller = (controllers[pathString] = createController(
       pathString,
       state,
       key,
       node,
       store
-    );
+    ));
+
+    controller.onDispose(() => {
+      delete controllers[pathString];
+      delete state[key];
+      trigger(store, pathString);
+    });
   }
 }
