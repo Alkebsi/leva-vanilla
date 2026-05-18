@@ -49,6 +49,7 @@ export type LevaGUI = ReturnType<typeof createGUIRoot> & {
   adjustHeight: (animate?: boolean) => void;
   toggle: (open?: boolean) => void;
   isOpen: () => boolean;
+  dispose: () => void;
 };
 
 const panelRegistry = new Map<string, LevaGUI>();
@@ -205,6 +206,23 @@ export function mountDOM(
     }
   };
 
+  const disposables: Array<() => void> = [];
+
+  const dispose = () => {
+    window.clearTimeout(_cacheRebuildId);
+    observer.disconnect();
+
+    _heightAnim?.cancel();
+    _contentAnim?.cancel();
+    _iconAnim?.cancel();
+
+    disposables.forEach((fn) => fn());
+    elements.root.remove();
+    panelRegistry.delete(panelId);
+
+    gui = undefined;
+  };
+
   gui = {
     ...elements,
     _rowCache,
@@ -212,11 +230,13 @@ export function mountDOM(
     adjustHeight,
     toggle,
     isOpen: () => _isOpen,
+    dispose,
   };
 
   panelRegistry.set(panelId, gui);
   renderControls(controls, gui.content);
-  setupHeaderInteractivity(gui);
+  const cleanupInteractivity = setupHeaderInteractivity(gui);
+  if (cleanupInteractivity) disposables.push(cleanupInteractivity);
 
   if (!_isOpen) {
     elements.contentContainer.style.height = '0px';
@@ -322,7 +342,12 @@ function _renderControlsRecursive(
       const renderer = controller ? CONTROL_RENDERERS[controller.type] : null;
 
       if (renderer && controller) {
-        container.appendChild(renderer(key, controller));
+        const controlEl = renderer(key, controller);
+        container.appendChild(controlEl);
+
+        controller.onDispose(() => {
+          controlEl.remove();
+        });
       } else {
         console.warn(
           `[leva] No renderer or controller found for type: ${controller?.type || 'unknown'} at ${fullPath}`

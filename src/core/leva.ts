@@ -29,6 +29,7 @@ export type LevaStore = {
   _controllers: Record<string, AnyController>;
   effect: (fn: () => void) => () => void;
   remove: (path: string) => void;
+  dispose: () => void;
 };
 
 /* ---------------------------------- */
@@ -74,15 +75,61 @@ export function leva<const T extends Schema>(
   const state: Record<string, unknown> = {};
   const controllers: Record<string, AnyController> = {};
 
-  const boundEffect = (fn: () => void) => effect(store, fn);
+  const activeEffects = new Set<() => void>();
+  const boundEffect = (fn: () => void) => {
+    const unSub = effect(store, fn);
+    activeEffects.add(unSub);
+
+    return () => {
+      unSub();
+      activeEffects.delete(unSub);
+    };
+  };
+
+  let guiInstance: { dispose: () => void } | undefined;
 
   const remove = (path: string) => {
-    const controller = (controllers as Record<string, AnyController>)[path];
-    if (controller) {
-      controller.dispose();
-      delete controllers[path];
-      trigger(store, path);
-    } else console.warn(`[leva] No control found at path: "${path}"`);
+    const controller = controllers[path];
+    if (!controller) return;
+
+    controller.dispose();
+
+    const lastDot = path.lastIndexOf('.');
+    if (lastDot === -1) return;
+
+    const parentPath = path.substring(0, lastDot);
+
+    const isEmpty = !Object.keys(controllers).some((k) =>
+      k.startsWith(parentPath + '.')
+    );
+
+    if (isEmpty) {
+      const segments = parentPath.split('.');
+      const key = segments.pop()!;
+      const parentObj = segments.reduce(
+        (acc, key) => acc[key] as Record<string, unknown>,
+        state
+      );
+      delete parentObj[key];
+      trigger(store, parentPath);
+
+      remove(parentPath);
+    }
+  };
+
+  const dispose = () => {
+    activeEffects.forEach((unSub) => unSub());
+    activeEffects.clear();
+
+    Object.keys(controllers).forEach(remove);
+
+    for (const key in state) {
+      if (!(RESERVED_KEYS as readonly string[]).includes(key)) {
+        delete state[key];
+        trigger(store, key);
+      }
+    }
+    guiInstance?.dispose();
   };
 
   Object.defineProperties(state, {
@@ -90,6 +137,7 @@ export function leva<const T extends Schema>(
     _controllers: { value: controllers, enumerable: false },
     effect: { value: boundEffect, enumerable: false },
     remove: { value: remove, enumerable: false },
+    dispose: { value: dispose, enumerable: false },
   });
 
   const proxy = createStateProxy(state, controllers, store);
@@ -98,7 +146,7 @@ export function leva<const T extends Schema>(
   build(tree, state, controllers, store);
 
   if (options?.gui !== false) {
-    mountDOM(controls, {
+    guiInstance = mountDOM(controls, {
       title: options?.title,
       panel: options?.panel,
       collapsed: options?.collapsed,

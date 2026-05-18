@@ -31,6 +31,11 @@ export function createFolder(
   const content = document.createElement('div');
   content.className = 'leva__content leva__folder-content';
 
+  const observer = new MutationObserver(() => {
+    if (content.children.length === 0) destroy();
+  });
+  observer.observe(content, { childList: true });
+
   wrapper.appendChild(header);
   wrapper.appendChild(content);
   parent.appendChild(wrapper);
@@ -142,6 +147,10 @@ export function createFolder(
   header.onclick = () => toggle();
 
   const destroy = () => {
+    header.onclick = null;
+    observer.disconnect();
+    heightAnim?.cancel();
+    opacityAnim?.cancel();
     wrapper.remove();
   };
 

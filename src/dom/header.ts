@@ -181,7 +181,7 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
     searchInput.dispatchEvent(new Event('input'));
     searchInput.focus();
   };
-  document.addEventListener('keydown', (e) => {
+  const onKeyDown = (e: KeyboardEvent) => {
     const key = (e.key || '').toLowerCase();
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'l') {
       e.preventDefault();
@@ -192,5 +192,17 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
         searchInput.select();
       }
     }
-  });
+  };
+
+  document.addEventListener('keydown', onKeyDown);
+
+  return () => {
+    window.clearTimeout(searchDebounceId);
+    document.removeEventListener('keydown', onKeyDown);
+
+    dropdownBtn.onclick = null;
+    searchBtn.onclick = null;
+    xBtn.onclick = null;
+    searchInput.oninput = null;
+  };
 }
