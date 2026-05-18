@@ -23,6 +23,7 @@ export type Effect = {
 export type BaseController<Type extends string> = {
   key: string;
   type: Type;
+  visible: boolean;
 };
 
 export type ValueController<T, Type extends string> = BaseController<Type> & {
@@ -126,21 +127,25 @@ export type NumberInput = {
   max?: number;
   step?: number;
   label?: string;
+  visible?: boolean;
   $?: FolderSettings | boolean;
 };
 export type BooleanInput = {
   value: boolean;
   label?: string;
+  visible?: boolean;
   $?: FolderSettings | boolean;
 };
 export type StringInput = {
   value: string;
   label?: string;
+  visible?: boolean;
   $?: FolderSettings | boolean;
 };
 export type ColorInput = {
   value: ColorValue;
   label?: string;
+  visible?: boolean;
   $?: FolderSettings | boolean;
 };
 export type SelectOptions =
@@ -150,11 +155,13 @@ export type SelectInput<O extends SelectOptions> = {
   options: O;
   value?: GetSelectValue<O>;
   label?: string;
+  visible?: boolean;
   $?: FolderSettings | boolean;
 };
 export type ButtonInput = {
   onClick: (...args: unknown[]) => void;
   label?: string;
+  visible?: boolean;
   disabled?: boolean;
   $?: FolderSettings | boolean;
 };

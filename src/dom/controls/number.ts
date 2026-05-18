@@ -66,6 +66,14 @@ export function createNumberInput(key: string, controller: NumberController) {
     control.append(stepper, input);
   }
 
+  /* ---------- Visibility Logic ---------- */
+
+  const updateVisibility = (isVisible: boolean) => {
+    container.style.display = isVisible === false ? 'none' : '';
+  };
+
+  updateVisibility(controller.visible);
+
   /* ---------- Sync ---------- */
 
   const sync = () => {
@@ -84,20 +92,23 @@ export function createNumberInput(key: string, controller: NumberController) {
 
     if (!isSlider) {
       input.value = value.toFixed(value < 0 ? 2 : displayDecimals(value, step));
-      return;
+    } else {
+      const min = controller.min ?? 0;
+      const max = controller.max ?? 1;
+
+      const x =
+        max - min === 0
+          ? 0
+          : Math.min(Math.max((value - min) / (max - min), 0), 1);
+
+      slider.root.style.setProperty('--percent', `${x * 100}%`);
+      slider.root.style.setProperty('--raw-x', `${x}`);
+      input.value = value.toFixed(displayDecimals(value, step));
     }
 
-    const min = controller.min ?? 0;
-    const max = controller.max ?? 1;
-
-    const x =
-      max - min === 0
-        ? 0
-        : Math.min(Math.max((value - min) / (max - min), 0), 1);
-
-    slider.root.style.setProperty('--percent', `${x * 100}%`);
-    slider.root.style.setProperty('--raw-x', `${x}`);
-    input.value = value.toFixed(displayDecimals(value, step));
+    if ('visible' in controller) {
+      updateVisibility(controller.visible);
+    }
   };
 
   /* ---------- Updates ---------- */

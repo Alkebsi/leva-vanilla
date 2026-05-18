@@ -18,6 +18,7 @@ export function createButtonController(
     type: node.type,
     trigger: node.trigger,
     label: node.label,
+    visible: node.visible,
     disabled: node.disabled,
     dispose() {
       disposeListeners.forEach((fn) => fn());

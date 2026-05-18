@@ -13,7 +13,7 @@ import { isColor } from '../utils/color';
 /* Descriptor Whitelist               */
 /* ---------------------------------- */
 
-const BASE_DESCRIPTOR_KEYS = new Set(['value', 'label']);
+const BASE_DESCRIPTOR_KEYS = new Set(['value', 'label', 'visible']);
 
 const NUMBER_DESCRIPTOR_KEYS = new Set([
   ...BASE_DESCRIPTOR_KEYS,
@@ -73,6 +73,7 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
         key,
         type: 'button',
         trigger: input,
+        visible: true,
         label: key,
       };
       continue;
@@ -85,6 +86,7 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
         type: 'button',
         trigger: input.onClick,
         label: input.label || key,
+        visible: input.visible ?? true,
         disabled: input.disabled,
       };
       continue;
@@ -192,7 +194,9 @@ function normalizeValue(
   input: { value?: RawInputValue } & Record<string, unknown>
 ): Node {
   const label = typeof input.label === 'string' ? input.label : key;
+  const visible = typeof input.visible === 'boolean' ? input.visible : true;
 
+  // select
   if ('options' in input) {
     assertNoUnknownKeys(key, input, SELECT_DESCRIPTOR_KEYS);
 
@@ -230,6 +234,7 @@ function normalizeValue(
       value,
       options,
       label,
+      visible,
     };
   }
 
@@ -247,6 +252,7 @@ function normalizeValue(
       min: typeof input.min === 'number' ? input.min : undefined,
       max: typeof input.max === 'number' ? input.max : undefined,
       step: typeof input.step === 'number' ? input.step : undefined,
+      visible,
     };
   }
 
@@ -259,6 +265,7 @@ function normalizeValue(
       type: 'boolean',
       value: v,
       label,
+      visible,
     };
   }
 
@@ -272,6 +279,7 @@ function normalizeValue(
         type: 'color',
         value: v as ColorValue,
         label,
+        visible,
       };
     }
 
@@ -280,6 +288,7 @@ function normalizeValue(
       type: 'string',
       value: v,
       label,
+      visible,
     };
   }
 
@@ -290,6 +299,7 @@ function normalizeValue(
       type: 'color',
       value: v as ColorValue,
       label,
+      visible,
     };
   }
 

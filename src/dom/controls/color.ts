@@ -46,6 +46,14 @@ export function createColorInput(key: string, controller: ColorController) {
 
   control.append(picker, preview, textContainer);
 
+  /* ---------- Visibility Logic ---------- */
+
+  const updateVisibility = (isVisible: boolean) => {
+    container.style.display = isVisible === false ? 'none' : '';
+  };
+
+  updateVisibility(controller.visible);
+
   /* ---------- Logic ---------- */
 
   const syncUI = () => {
@@ -64,6 +72,10 @@ export function createColorInput(key: string, controller: ColorController) {
       const fallback = String(value);
       if (textInput.value !== fallback) textInput.value = fallback;
       preview.style.backgroundColor = fallback;
+    }
+
+    if ('visible' in controller) {
+      updateVisibility(controller.visible);
     }
   };
 

@@ -19,6 +19,7 @@ export function createStringController(
     type: node.type,
 
     label: node.label,
+    visible: node.visible,
 
     get value() {
       return state[key] as string;

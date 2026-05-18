@@ -23,9 +23,19 @@ export function createStringInput(key: string, controller: StringController) {
 
   control.append(input);
 
+  const updateVisibility = (isVisible: boolean) => {
+    container.style.display = isVisible === false ? 'none' : '';
+  };
+
+  updateVisibility(controller.visible !== false);
+
   const syncFromController = () => {
     const value = controller.value;
     input.value = value;
+
+    if ('visible' in controller) {
+      updateVisibility(controller.visible);
+    }
   };
 
   const handleInput = () => controller.set(input.value);

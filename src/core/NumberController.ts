@@ -22,6 +22,7 @@ export function createNumberController(
     max: node.max,
     step: node.step,
     label: node.label,
+    visible: node.visible,
 
     get value() {
       return state[key] as number;

@@ -40,6 +40,17 @@ export function createSelectInput(key: string, controller: SelectController) {
   let isOpen = false;
 
   /* ---------------------------------- */
+  /* Visibility Logic                   */
+  /* ---------------------------------- */
+
+  const updateVisibility = (isVisible: boolean) => {
+    container.style.display = isVisible === false ? 'none' : '';
+    if (isVisible === false && isOpen) close();
+  };
+
+  updateVisibility(controller.visible);
+
+  /* ---------------------------------- */
   /* State                              */
   /* ---------------------------------- */
 
@@ -117,6 +128,10 @@ export function createSelectInput(key: string, controller: SelectController) {
     const current = controller.value;
     const match = entries.find((e) => e.value === current);
     if (match) trigger.textContent = match.label;
+
+    if ('visible' in controller) {
+      updateVisibility(controller.visible);
+    }
   };
 
   /* ---------------------------------- */

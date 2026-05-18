@@ -5,6 +5,7 @@ type BaseNode<T, K extends string> = {
   type: K;
   value: T;
   label: string;
+  visible: boolean;
 };
 
 export type NumberNode = BaseNode<number, 'number'> & {
@@ -33,6 +34,7 @@ export type ButtonNode = {
   type: 'button';
   trigger: () => void;
   label: string;
+  visible: boolean;
   disabled?: boolean;
 };
 

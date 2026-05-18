@@ -6,6 +6,7 @@ type ButtonController = {
   type: 'button';
   trigger: () => void;
   label: string;
+  visible: boolean;
   disabled?: boolean;
   onChange?: (fn: () => void) => () => void;
   dispose: () => void;
@@ -25,10 +26,24 @@ export function createButtonInput(key: string, controller: ButtonController) {
   label.remove();
   row.classList.add('leva__row--button');
 
+  /* ---------- Visibility Logic ---------- */
+
+  const updateVisibility = (isVisible: boolean) => {
+    container.style.display = isVisible === false ? 'none' : '';
+  };
+
+  updateVisibility(controller.visible);
+
+  /* ---------- Sync ---------- */
+
   const sync = () => {
     button.textContent = controller.label;
     button.disabled = !!controller.disabled;
     button.classList.toggle('disabled', !!controller.disabled);
+
+    if ('visible' in controller) {
+      updateVisibility(controller.visible);
+    }
   };
 
   const handleClick = () => {

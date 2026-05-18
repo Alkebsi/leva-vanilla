@@ -15,6 +15,7 @@ export type SelectOptions = string[] | Record<string, string | number>;
 type BaseDescriptor<T> = {
   value: T;
   label?: string;
+  visible?: boolean;
   $?: FolderSettings | boolean;
 };
 
@@ -44,6 +45,7 @@ export type SelectDescriptor = {
 export type ButtonDescriptor = {
   onClick: () => void;
   label?: string;
+  visible?: boolean;
   disabled?: boolean;
   $?: FolderSettings | boolean;
 };

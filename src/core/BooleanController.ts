@@ -17,6 +17,7 @@ export function createBooleanController(
   return {
     key: path,
     type: node.type,
+    visible: node.visible,
 
     get value() {
       return state[key] as boolean;
