@@ -33,8 +33,8 @@ export function createBooleanInput(key: string, controller: BooleanController) {
   const handleChange = () => controller.set(input.checked);
   input.addEventListener('change', handleChange);
 
-  const sync = (v: boolean) => {
-    input.checked = v;
+  const sync = () => {
+    input.checked = controller.value;
 
     if ('visible' in controller) {
       updateVisibility(controller.visible);
@@ -60,6 +60,8 @@ export function createBooleanInput(key: string, controller: BooleanController) {
   };
 
   controller.onDispose(cleanup);
+
+  sync();
 
   return container;
 }
