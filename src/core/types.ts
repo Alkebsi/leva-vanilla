@@ -24,6 +24,9 @@ export type BaseController<Type extends string> = {
   key: string;
   type: Type;
   visible: boolean;
+  dispose: () => void;
+  onDispose: (fn: () => void) => void;
+  onVisibleChange: (fn: (v: boolean) => void) => () => void;
 };
 
 export type ValueController<T, Type extends string> = BaseController<Type> & {
@@ -31,8 +34,6 @@ export type ValueController<T, Type extends string> = BaseController<Type> & {
   set: (v: T) => void;
   onChange: (fn: (v: T) => void) => () => void;
   label: string;
-  dispose: () => void;
-  onDispose: (fn: () => void) => void;
 };
 
 /* ---------------------------------- */
@@ -64,8 +65,6 @@ export type ButtonController = BaseController<'button'> & {
   trigger: () => void;
   label: string;
   disabled?: boolean;
-  dispose: () => void;
-  onDispose: (fn: () => void) => void;
 };
 
 /* ---------------------------------- */
@@ -198,6 +197,32 @@ export type ValidateSchema<T> = {
               ? StrictFolderSettings<T[K]>
               : ValidateSchema<T[K]>
             : T[K];
+};
+
+type Widen<T> = T extends number
+  ? number
+  : T extends string
+    ? string
+    : T extends boolean
+      ? boolean
+      : T;
+
+export type ExtractValues<T> = {
+  -readonly [K in keyof T]: T[K] extends { value: infer V }
+    ? Widen<V>
+    : T[K] extends { options: infer O }
+      ? O extends readonly (infer Item)[]
+        ? Widen<Item>
+        : O extends Record<string, infer Val>
+          ? Widen<Val>
+          : unknown
+      : T[K] extends { onClick: (...args: infer Args) => void }
+        ? (...args: Args) => void
+        : T[K] extends Record<string, unknown>
+          ? K extends '$'
+            ? never
+            : ExtractValues<T[K]>
+          : T[K];
 };
 
 type StrictFolderSettings<T> = FolderSettings & {

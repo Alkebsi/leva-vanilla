@@ -26,7 +26,7 @@ export function createBooleanInput(key: string, controller: BooleanController) {
     container.style.display = isVisible === false ? 'none' : '';
   };
 
-  updateVisibility(controller.visible);
+  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
 
   /* ---------- Logic ---------- */
 
@@ -41,7 +41,7 @@ export function createBooleanInput(key: string, controller: BooleanController) {
     }
   };
 
-  const unsubscribe = controller.onChange(sync);
+  const unsubscribeChange = controller.onChange(sync);
 
   label.htmlFor = elementId;
   label.textContent = controller.label;
@@ -54,7 +54,8 @@ export function createBooleanInput(key: string, controller: BooleanController) {
 
   const cleanup = () => {
     input.removeEventListener('change', handleChange);
-    unsubscribe();
+    unsubscribeChange();
+    unsubscribeVisibility();
     container.remove();
   };
 

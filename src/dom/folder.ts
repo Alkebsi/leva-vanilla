@@ -8,6 +8,7 @@ export function createFolder(
 ) {
   const wrapper = document.createElement('div');
   wrapper.className = 'leva__folder';
+  wrapper.setAttribute('data-path', name);
 
   const isNested = parent.classList.contains('leva__folder-content');
   const isSubsequent = parent.children.length > 0;

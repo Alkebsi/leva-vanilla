@@ -52,7 +52,7 @@ export function createColorInput(key: string, controller: ColorController) {
     container.style.display = isVisible === false ? 'none' : '';
   };
 
-  updateVisibility(controller.visible);
+  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
 
   /* ---------- Logic ---------- */
 
@@ -92,7 +92,7 @@ export function createColorInput(key: string, controller: ColorController) {
   };
   textInput.addEventListener('change', handleTextChange);
 
-  const unsubscribe = controller.onChange(syncUI);
+  const unsubscribeChange = controller.onChange(syncUI);
 
   // Init
   syncUI();
@@ -100,7 +100,8 @@ export function createColorInput(key: string, controller: ColorController) {
   const cleanup = () => {
     picker.removeEventListener('input', handlePickerInput);
     textInput.removeEventListener('change', handleTextChange);
-    unsubscribe();
+    unsubscribeChange();
+    unsubscribeVisibility();
     container.remove();
   };
   controller.onDispose(cleanup);

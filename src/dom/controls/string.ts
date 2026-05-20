@@ -41,13 +41,15 @@ export function createStringInput(key: string, controller: StringController) {
   const handleInput = () => controller.set(input.value);
   input.addEventListener('input', handleInput);
 
-  const unsubscribe = controller.onChange(syncFromController);
+  const unsubscribeChange = controller.onChange(syncFromController);
+  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
 
   syncFromController();
 
   const cleanup = () => {
     input.removeEventListener('input', handleInput);
-    unsubscribe();
+    unsubscribeChange();
+    unsubscribeVisibility();
     container.remove();
   };
   controller.onDispose(cleanup);

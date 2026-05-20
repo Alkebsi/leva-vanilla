@@ -7,6 +7,7 @@ import { registerDefaults } from './bootstrap';
 import { createController } from './registry';
 import type {
   AnyController,
+  ExtractValues,
   ReactiveStore,
   Schema,
   ValidateSchema,
@@ -29,6 +30,7 @@ export type LevaStore = {
   _controllers: Record<string, AnyController>;
   effect: (fn: () => void) => () => void;
   remove: (path: string) => void;
+  visibility: (path: string, visible: boolean) => void;
   dispose: () => void;
 };
 
@@ -36,23 +38,24 @@ export type LevaStore = {
 /* Public API                        */
 /* ---------------------------------- */
 
-type ReservedKeys = 'effect' | 'remove' | '_tree' | '_controllers';
-const RESERVED_KEYS = ['effect', 'remove', '_tree', '_controllers'] as const;
+type ReservedKeys =
+  | 'effect'
+  | 'remove'
+  | 'visibility'
+  | '_tree'
+  | '_controllers';
+const RESERVED_KEYS = [
+  'effect',
+  'remove',
+  'visibility',
+  '_tree',
+  '_controllers',
+] as const;
 
 type NoReservedKeys<T> = {
   [K in keyof T]: K extends ReservedKeys
     ? `Error: "${K}" is a reserved keyword and cannot be used as a control name.`
     : unknown;
-};
-
-type DeepWritable<T> = {
-  -readonly [K in keyof T]: T[K] extends object
-    ? DeepWritable<T[K]>
-    : T[K] extends boolean
-      ? boolean
-      : T[K] extends number
-        ? number
-        : T[K];
 };
 
 export function leva<const T extends Schema>(
@@ -87,6 +90,21 @@ export function leva<const T extends Schema>(
   };
 
   let guiInstance: { dispose: () => void } | undefined;
+
+  const visibility = (path: string, value: boolean) => {
+    const prefix = path + '.';
+
+    Object.keys(controllers).forEach((key) => {
+      if (key === path || key.startsWith(prefix)) {
+        controllers[key].visible = value;
+      }
+    });
+
+    const folderEl = document.querySelector(
+      `.leva__folder[data-path="${path}"]`
+    ) as HTMLElement;
+    if (folderEl) folderEl.style.display = value ? '' : 'none';
+  };
 
   const remove = (path: string) => {
     const controller = controllers[path];
@@ -136,6 +154,7 @@ export function leva<const T extends Schema>(
     _tree: { value: tree, enumerable: false },
     _controllers: { value: controllers, enumerable: false },
     effect: { value: boundEffect, enumerable: false },
+    visibility: { value: visibility, enumerable: false },
     remove: { value: remove, enumerable: false },
     dispose: { value: dispose, enumerable: false },
   });
@@ -154,7 +173,7 @@ export function leva<const T extends Schema>(
   }
 
   return controls as unknown as Omit<LevaStore, '_tree' | '_controllers'> &
-    DeepWritable<T>;
+    ExtractValues<T>;
 }
 
 /* ---------------------------------- */

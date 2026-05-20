@@ -14,14 +14,27 @@ export function createSelectController(
   const options = node.options;
   const listeners = new Set<(v: string | number) => void>();
   const disposeListeners = new Set<() => void>();
+  const visibilityListeners = new Set<(v: boolean) => void>();
 
   const isValid = (v: string | number) => options.some((o) => o.value === v);
+
+  let _visible = node.visible;
 
   return {
     key: path,
     type: node.type,
     label: node.label,
-    visible: node.visible,
+    options,
+
+    get visible() {
+      return _visible;
+    },
+
+    set visible(v: boolean) {
+      if (_visible === v) return;
+      _visible = v;
+      visibilityListeners.forEach((fn) => fn(v));
+    },
 
     get value() {
       return state[key] as string | number;
@@ -55,6 +68,9 @@ export function createSelectController(
       return () => disposeListeners.delete(fn);
     },
 
-    options,
+    onVisibleChange(fn) {
+      visibilityListeners.add(fn);
+      return () => visibilityListeners.delete(fn);
+    },
   };
 }

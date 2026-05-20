@@ -13,6 +13,9 @@ export function createNumberController(
 ): NumberController {
   const listeners = new Set<(v: number) => void>();
   const disposeListeners = new Set<() => void>();
+  const visibilityListeners = new Set<(v: boolean) => void>();
+
+  let _visible = node.visible;
 
   return {
     key: path,
@@ -22,7 +25,16 @@ export function createNumberController(
     max: node.max,
     step: node.step,
     label: node.label,
-    visible: node.visible,
+
+    get visible() {
+      return _visible;
+    },
+
+    set visible(v: boolean) {
+      if (_visible === v) return;
+      _visible = v;
+      visibilityListeners.forEach((fn) => fn(v));
+    },
 
     get value() {
       return state[key] as number;
@@ -55,6 +67,11 @@ export function createNumberController(
     onDispose(fn) {
       disposeListeners.add(fn);
       return () => disposeListeners.delete(fn);
+    },
+
+    onVisibleChange(fn) {
+      visibilityListeners.add(fn);
+      return () => visibilityListeners.delete(fn);
     },
   };
 }

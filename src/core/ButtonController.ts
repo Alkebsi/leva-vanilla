@@ -12,21 +12,40 @@ export function createButtonController(
 ): ButtonController {
   void _store;
   const disposeListeners = new Set<() => void>();
+  const visibilityListeners = new Set<(v: boolean) => void>();
+
+  let _visible = node.visible;
 
   return {
     key: path,
     type: node.type,
     trigger: node.trigger,
     label: node.label,
-    visible: node.visible,
     disabled: node.disabled,
+
+    get visible() {
+      return _visible;
+    },
+
+    set visible(v: boolean) {
+      if (_visible === v) return;
+      _visible = v;
+      visibilityListeners.forEach((fn) => fn(v));
+    },
+
     dispose() {
       disposeListeners.forEach((fn) => fn());
       disposeListeners.clear();
     },
+
     onDispose(fn) {
       disposeListeners.add(fn);
       return () => disposeListeners.delete(fn);
+    },
+
+    onVisibleChange(fn) {
+      visibilityListeners.add(fn);
+      return () => visibilityListeners.delete(fn);
     },
   };
 }

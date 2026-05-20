@@ -72,7 +72,7 @@ export function createNumberInput(key: string, controller: NumberController) {
     container.style.display = isVisible === false ? 'none' : '';
   };
 
-  updateVisibility(controller.visible);
+  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
 
   /* ---------- Sync ---------- */
 
@@ -233,7 +233,7 @@ export function createNumberInput(key: string, controller: NumberController) {
 
   document.addEventListener('pointerlockchange', onPointerLockChange);
 
-  const unsubscribe = controller.onChange(syncFromController);
+  const unsubscribeChange = controller.onChange(syncFromController);
 
   /* ---------- Init ---------- */
 
@@ -247,7 +247,8 @@ export function createNumberInput(key: string, controller: NumberController) {
     stepper.onpointerdown = null;
     targets.forEach((t) => t.removeEventListener('wheel', handleWheel));
     document.removeEventListener('pointerlockchange', onPointerLockChange);
-    unsubscribe();
+    unsubscribeChange();
+    unsubscribeVisibility();
     container.remove();
   };
   controller.onDispose(cleanup);

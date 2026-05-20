@@ -1,17 +1,6 @@
 import { createRow } from './row';
 import { generateId } from '../../utils/generateId';
-
-type ButtonController = {
-  key: string;
-  type: 'button';
-  trigger: () => void;
-  label: string;
-  visible: boolean;
-  disabled?: boolean;
-  onChange?: (fn: () => void) => () => void;
-  dispose: () => void;
-  onDispose: (fn: () => void) => void;
-};
+import type { ButtonController } from '../../core/types';
 
 export function createButtonInput(key: string, controller: ButtonController) {
   const { row, container, control, label, labelContainer } = createRow();
@@ -32,7 +21,7 @@ export function createButtonInput(key: string, controller: ButtonController) {
     container.style.display = isVisible === false ? 'none' : '';
   };
 
-  updateVisibility(controller.visible);
+  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
 
   /* ---------- Sync ---------- */
 
@@ -56,6 +45,7 @@ export function createButtonInput(key: string, controller: ButtonController) {
 
   const cleanup = () => {
     button.removeEventListener('click', handleClick);
+    unsubscribeVisibility();
     container.remove();
   };
 

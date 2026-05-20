@@ -15,16 +15,27 @@ export function createColorController(
 ): ColorController {
   const listeners = new Set<(v: ColorValue) => void>();
   const disposeListeners = new Set<() => void>();
+  const visibilityListeners = new Set<(v: boolean) => void>();
 
-  // Detect initial format info
   const initial = parseColor(state[key]);
   const formatInfo = initial?.info || { kind: 'string', type: 'rgb', max: 255 };
+
+  let _visible = node.visible;
 
   return {
     key: path,
     type: node.type,
     label: node.label,
-    visible: node.visible,
+
+    get visible() {
+      return _visible;
+    },
+
+    set visible(v: boolean) {
+      if (_visible === v) return;
+      _visible = v;
+      visibilityListeners.forEach((fn) => fn(v));
+    },
 
     get value() {
       return state[key] as ColorValue;
@@ -33,8 +44,6 @@ export function createColorController(
     set(v: ColorValue) {
       if (Object.is(state[key], v)) return;
 
-      // If the incoming value is a string (e.g. from the Hex picker),
-      // convert it back to the original format shape.
       const parsed = parseColor(v);
       const finalValue = parsed ? formatColor(parsed.rgba, formatInfo) : v;
 
@@ -56,6 +65,11 @@ export function createColorController(
     onDispose(fn) {
       disposeListeners.add(fn);
       return () => disposeListeners.delete(fn);
+    },
+
+    onVisibleChange(fn) {
+      visibilityListeners.add(fn);
+      return () => visibilityListeners.delete(fn);
     },
   };
 }

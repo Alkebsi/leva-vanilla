@@ -48,7 +48,7 @@ export function createSelectInput(key: string, controller: SelectController) {
     if (isVisible === false && isOpen) close();
   };
 
-  updateVisibility(controller.visible);
+  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
 
   /* ---------------------------------- */
   /* State                              */
@@ -148,7 +148,7 @@ export function createSelectInput(key: string, controller: SelectController) {
   trigger.onclick = toggle;
   document.addEventListener('click', handleOutsideClick);
 
-  const unsubscribe = controller.onChange(sync);
+  const unsubscribeChange = controller.onChange(sync);
 
   /* ---------------------------------- */
   /* Init                               */
@@ -158,7 +158,8 @@ export function createSelectInput(key: string, controller: SelectController) {
 
   const cleanup = () => {
     document.removeEventListener('click', handleOutsideClick);
-    unsubscribe();
+    unsubscribeChange();
+    unsubscribeVisibility();
     dropdown.remove();
     container.remove();
   };
