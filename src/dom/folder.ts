@@ -41,6 +41,8 @@ export function createFolder(
   wrapper.appendChild(content);
   parent.appendChild(wrapper);
 
+  if (settings.visible === false) wrapper.style.display = 'none';
+
   let isOpen = settings.collapsed === true ? false : true;
   let currentAngle = isOpen ? 0 : -90;
 

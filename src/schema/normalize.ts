@@ -36,6 +36,7 @@ type FolderInput = {
   $?: FolderSettings | boolean;
   label?: string;
   collapsed?: boolean;
+  visible?: boolean;
 } & InputSchema;
 
 const normalize = (schema: InputSchema): Record<string, Node> => {
@@ -52,6 +53,7 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
       result[key] = {
         key,
         type: 'folder',
+        visible: settings.visible,
         label: settings.label || (typeof label === 'string' ? label : key),
         collapsed:
           settings.collapsed ??
@@ -112,10 +114,11 @@ const normalize = (schema: InputSchema): Record<string, Node> => {
 
     // 6. implicit folder
     if (isPlainObject(input)) {
-      const { label, collapsed, ...children } = input as FolderInput;
+      const { label, collapsed, visible, ...children } = input as FolderInput;
 
       result[key] = {
         key,
+        visible,
         type: 'folder',
         label: typeof label === 'string' ? label : key,
         collapsed: typeof collapsed === 'boolean' ? collapsed : undefined,

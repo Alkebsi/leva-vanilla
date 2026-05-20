@@ -329,6 +329,7 @@ function _renderControlsRecursive(
       const folderElements = createFolder(container, key, {
         label: node.label,
         collapsed: node.collapsed,
+        visible: node.visible,
       });
 
       _renderControlsRecursive(

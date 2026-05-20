@@ -44,6 +44,7 @@ export type FolderNode = {
   children: Record<string, Node>;
   label: string;
   collapsed?: boolean;
+  visible?: boolean;
 };
 
 export type Node =

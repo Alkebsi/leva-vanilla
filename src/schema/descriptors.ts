@@ -53,6 +53,7 @@ export type ButtonDescriptor = {
 export type FolderSettings = {
   label?: string;
   collapsed?: boolean;
+  visible?: boolean;
 };
 
 /* ---------------------------------- */
