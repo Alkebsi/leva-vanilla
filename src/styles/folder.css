@@ -1,4 +1,5 @@
 .leva__folder {
+  display: block;
   --leva-colors-folderWidgetColor: #8c92a4;
   --leva-colors-folderTextColor: #fefefe;
   padding-left: var(--leva-space-md);
@@ -6,6 +7,16 @@
   color: var(--leva-colors-folderTextColor);
   user-select: none;
   font-weight: var(--leva-fontWeights-folder);
+}
+
+.leva__folder.visibility-hidden,
+.leva__row-container.visibility-hidden {
+  display: none !important;
+}
+
+.leva__folder.search-hidden,
+.leva__row-container.search-hidden {
+  display: none;
 }
 
 .leva__folder:not(:first-of-type):not(.leva__folder--subsequent) {

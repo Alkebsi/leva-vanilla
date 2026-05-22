@@ -23,9 +23,18 @@
 }
 
 .leva__row-container {
+  display: block;
   padding-left: var(--leva-space-md);
   padding-right: var(--leva-space-md);
   opacity: 1;
+}
+
+.leva__row-container.visibility-hidden {
+  display: none !important;
+}
+
+.leva__row-container.search-hidden {
+  display: none;
 }
 
 .leva__row {

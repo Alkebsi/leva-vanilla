@@ -49,7 +49,7 @@ export function createColorInput(key: string, controller: ColorController) {
   /* ---------- Visibility Logic ---------- */
 
   const updateVisibility = (isVisible: boolean) => {
-    container.style.display = isVisible === false ? 'none' : '';
+    container.classList.toggle('visibility-hidden', !isVisible);
   };
 
   const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);

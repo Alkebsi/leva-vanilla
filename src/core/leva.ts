@@ -85,7 +85,7 @@ export function leva<const T extends Schema>(
     const folderEl = document.querySelector(
       `.leva__folder[data-path="${path}"]`
     ) as HTMLElement;
-    if (folderEl) folderEl.style.display = value ? '' : 'none';
+    if (folderEl) folderEl.classList.toggle('visibility-hidden', !value);
   };
 
   const remove = (path: string) => {

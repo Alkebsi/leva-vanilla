@@ -69,7 +69,7 @@ export function createNumberInput(key: string, controller: NumberController) {
   /* ---------- Visibility Logic ---------- */
 
   const updateVisibility = (isVisible: boolean) => {
-    container.style.display = isVisible === false ? 'none' : '';
+    container.classList.toggle('visibility-hidden', !isVisible);
   };
 
   const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);

@@ -18,7 +18,7 @@ export function createButtonInput(key: string, controller: ButtonController) {
   /* ---------- Visibility Logic ---------- */
 
   const updateVisibility = (isVisible: boolean) => {
-    container.style.display = isVisible === false ? 'none' : '';
+    container.classList.toggle('visibility-hidden', !isVisible);
   };
 
   const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);

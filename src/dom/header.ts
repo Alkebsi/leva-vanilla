@@ -170,29 +170,31 @@ export function setupHeaderInteractivity(
       );
 
       if (query === '') {
-        rows.forEach((r) => (r.container.style.display = ''));
-        folders.forEach((f) => (f.style.display = ''));
+        rows.forEach((r) => r.container.classList.remove('search-hidden'));
+        folders.forEach((f) => f.classList.remove('search-hidden'));
         gui.adjustHeight(true);
         xBtn.style.visibility = 'hidden';
         return;
       }
 
-      folders.forEach((f) => (f.style.display = 'none'));
+      folders.forEach((f) => f.classList.add('search-hidden'));
+
       rows.forEach((r) => {
         const isMatch = r.labelText.toLowerCase().includes(query);
+        r.container.classList.toggle('search-hidden', !isMatch);
+
         if (isMatch) {
-          r.container.style.display = '';
           let parent = r.container.parentElement;
           while (parent && parent !== gui.content) {
-            if (parent.classList.contains('leva__folder'))
-              parent.style.display = '';
+            if (parent.classList.contains('leva__folder')) {
+              parent.classList.remove('search-hidden');
+            }
             parent = parent.parentElement;
           }
-        } else {
-          r.container.style.display = 'none';
         }
       });
-      if (gui.isOpen()) gui.adjustHeight(true);
+
+      gui.adjustHeight(true);
       xBtn.style.visibility = 'visible';
     }, 120);
   };

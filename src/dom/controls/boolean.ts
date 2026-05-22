@@ -23,7 +23,7 @@ export function createBooleanInput(key: string, controller: BooleanController) {
   /* ---------- Visibility Logic ---------- */
 
   const updateVisibility = (isVisible: boolean) => {
-    container.style.display = isVisible === false ? 'none' : '';
+    container.classList.toggle('visibility-hidden', !isVisible);
   };
 
   const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);

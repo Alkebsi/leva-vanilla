@@ -130,8 +130,8 @@ export function createSelectInput(key: string, controller: SelectController) {
   document.addEventListener('click', handleOutsideClick);
 
   const unsubscribeVisibility = controller.onVisibleChange((isVisible) => {
-    container.style.display = isVisible === false ? 'none' : '';
-    if (isVisible === false && isOpen) close();
+    container.classList.toggle('visibility-hidden', !isVisible);
+    if (!isVisible && isOpen) close();
   });
 
   const unsubscribeChange = controller.onChange(sync);

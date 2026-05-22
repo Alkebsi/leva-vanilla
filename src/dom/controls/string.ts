@@ -24,7 +24,7 @@ export function createStringInput(key: string, controller: StringController) {
   control.append(input);
 
   const updateVisibility = (isVisible: boolean) => {
-    container.style.display = isVisible === false ? 'none' : '';
+    container.classList.toggle('visibility-hidden', !isVisible);
   };
 
   updateVisibility(controller.visible !== false);
