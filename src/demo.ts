@@ -76,6 +76,7 @@ const controls = leva(
     },
     Miscellaneous: {
       $: { label: 'Misc' },
+      hideOptions: true,
       selection: {
         value: 'option 1',
         options: ['option 1', 'option 2', 'option 3'],
@@ -88,7 +89,6 @@ const controls = leva(
           Small: 'S',
         },
       },
-      checkbox: true,
     },
     button: {
       onClick: () => alert('The button works as expected'),
@@ -146,4 +146,13 @@ controls.effect(() => {
 
   changed.forEach(triggerFlash);
   last = curr;
+
+  controls.visibility(
+    'Miscellaneous.namedSelection',
+    controls.Miscellaneous.hideOptions
+  );
+  controls.visibility(
+    'Miscellaneous.selection',
+    controls.Miscellaneous.hideOptions
+  );
 });
