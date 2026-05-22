@@ -33,94 +33,79 @@ export function createSelectInput(key: string, controller: SelectController) {
   icon.innerHTML = icons.downArrow;
 
   control.append(trigger, icon);
-  document.querySelector('#leva__root')?.appendChild(dropdown);
+
+  document.body.appendChild(dropdown);
+
   control.classList.add('leva__control--select-parent');
 
   const entries: Entry[] = controller.options;
   let isOpen = false;
 
-  /* ---------------------------------- */
-  /* Visibility Logic                   */
-  /* ---------------------------------- */
-
-  const updateVisibility = (isVisible: boolean) => {
-    container.style.display = isVisible === false ? 'none' : '';
-    if (isVisible === false && isOpen) close();
-  };
-
-  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
-
-  /* ---------------------------------- */
-  /* State                              */
-  /* ---------------------------------- */
-
-  const open = () => {
-    positionDropdown();
-    dropdown.hidden = false;
-    isOpen = true;
-  };
-
-  const close = () => {
-    dropdown.hidden = true;
-    isOpen = false;
-  };
-
-  const toggle = () => (isOpen ? close() : open());
-
-  /* ---------------------------------- */
-  /* Positioning                        */
-  /* ---------------------------------- */
-
   const positionDropdown = () => {
     const rect = trigger.getBoundingClientRect();
 
+    dropdown.style.display = 'block';
     dropdown.hidden = false;
     const height = dropdown.offsetHeight;
     dropdown.hidden = true;
+    dropdown.style.display = '';
 
     const width = rect.width;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
+    // Default: Below trigger
     let top = rect.bottom + 4;
     let left = rect.left;
 
-    if (rect.bottom + height > vh) {
+    // Flip to top if no space below
+    if (rect.bottom + height > vh && rect.top > height) {
       top = rect.top - height - 4;
     }
 
+    // Horizontal overflow check
     if (left + width > vw) {
       left = vw - width - 8;
     }
-
     if (left < 8) left = 8;
 
     dropdown.style.position = 'fixed';
     dropdown.style.top = `${top}px`;
     dropdown.style.left = `${left}px`;
     dropdown.style.width = `${width}px`;
+    dropdown.style.zIndex = '100000';
   };
 
-  /* ---------------------------------- */
-  /* Rendering                          */
-  /* ---------------------------------- */
+  const open = () => {
+    positionDropdown();
+    dropdown.hidden = false;
+    isOpen = true;
+    window.addEventListener('scroll', positionDropdown, true);
+    window.addEventListener('resize', positionDropdown);
+  };
+
+  const close = () => {
+    dropdown.hidden = true;
+    isOpen = false;
+    window.removeEventListener('scroll', positionDropdown, true);
+    window.removeEventListener('resize', positionDropdown);
+  };
+
+  const toggle = () => (isOpen ? close() : open());
 
   const buildOptions = () => {
     dropdown.innerHTML = '';
-
     for (const entry of entries) {
       const item = document.createElement('div');
       item.className = 'leva__select-item';
       item.textContent = entry.label;
-
-      item.onclick = () => {
+      item.onclick = (e) => {
+        e.stopPropagation();
         controller.set(entry.value);
         close();
       };
-
       dropdown.appendChild(item);
     }
-
     sync();
   };
 
@@ -128,15 +113,7 @@ export function createSelectInput(key: string, controller: SelectController) {
     const current = controller.value;
     const match = entries.find((e) => e.value === current);
     if (match) trigger.textContent = match.label;
-
-    if ('visible' in controller) {
-      updateVisibility(controller.visible);
-    }
   };
-
-  /* ---------------------------------- */
-  /* Events                             */
-  /* ---------------------------------- */
 
   const handleOutsideClick = (e: MouseEvent) => {
     const target = e.target as Node;
@@ -145,19 +122,26 @@ export function createSelectInput(key: string, controller: SelectController) {
     }
   };
 
-  trigger.onclick = toggle;
+  trigger.onclick = (e) => {
+    e.stopPropagation();
+    toggle();
+  };
+
   document.addEventListener('click', handleOutsideClick);
 
-  const unsubscribeChange = controller.onChange(sync);
+  const unsubscribeVisibility = controller.onVisibleChange((isVisible) => {
+    container.style.display = isVisible === false ? 'none' : '';
+    if (isVisible === false && isOpen) close();
+  });
 
-  /* ---------------------------------- */
-  /* Init                               */
-  /* ---------------------------------- */
+  const unsubscribeChange = controller.onChange(sync);
 
   buildOptions();
 
   const cleanup = () => {
     document.removeEventListener('click', handleOutsideClick);
+    window.removeEventListener('scroll', positionDropdown, true);
+    window.removeEventListener('resize', positionDropdown);
     unsubscribeChange();
     unsubscribeVisibility();
     dropdown.remove();
