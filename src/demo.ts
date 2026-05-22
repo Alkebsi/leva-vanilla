@@ -76,7 +76,7 @@ const controls = leva(
     },
     Miscellaneous: {
       $: { label: 'Misc' },
-      hideOptions: true,
+      showOptions: true,
       selection: {
         value: 'option 1',
         options: ['option 1', 'option 2', 'option 3'],
@@ -149,10 +149,10 @@ controls.effect(() => {
 
   controls.visibility(
     'Miscellaneous.namedSelection',
-    controls.Miscellaneous.hideOptions
+    controls.Miscellaneous.showOptions
   );
   controls.visibility(
     'Miscellaneous.selection',
-    controls.Miscellaneous.hideOptions
+    controls.Miscellaneous.showOptions
   );
 });
