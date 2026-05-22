@@ -8,31 +8,13 @@ import { createController } from './registry';
 import type {
   AnyController,
   ExtractValues,
+  LevaOptions,
+  LevaStore,
   ReactiveStore,
   Schema,
   ValidateSchema,
 } from './types';
 import { mountDOM } from '../dom/gui';
-
-/* ---------------------------------- */
-/* Options                           */
-/* ---------------------------------- */
-
-type LevaOptions = {
-  collapsed?: boolean;
-  title?: string;
-  panel?: string;
-  gui?: boolean;
-};
-
-export type LevaStore = {
-  _tree: Record<string, Node>;
-  _controllers: Record<string, AnyController>;
-  effect: (fn: () => void) => () => void;
-  remove: (path: string) => void;
-  visibility: (path: string, visible: boolean) => void;
-  dispose: () => void;
-};
 
 /* ---------------------------------- */
 /* Public API                        */
@@ -165,11 +147,7 @@ export function leva<const T extends Schema>(
   build(tree, state, controllers, store);
 
   if (options?.gui !== false) {
-    guiInstance = mountDOM(controls, {
-      title: options?.title,
-      panel: options?.panel,
-      collapsed: options?.collapsed,
-    });
+    guiInstance = mountDOM(controls, options);
   }
 
   return controls as unknown as Omit<LevaStore, '_tree' | '_controllers'> &

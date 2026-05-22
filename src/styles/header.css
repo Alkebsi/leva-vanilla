@@ -24,14 +24,17 @@
   transition: fill 250ms;
 }
 
-.leva__icons:hover {
+.leva__icons:not(.disabled):hover {
   fill: var(--leva-colors-highlight3);
   color: var(--leva-colors-highlight3);
 }
 
-.leva__icons--grab-icon {
+.leva__icons--grab-icon:not(.disabled) {
   cursor: grab;
+}
+.leva__icons--grab-icon {
   flex: 1 1 0%;
+  cursor: auto;
 }
 
 .leva__icons--dropdown-icon > svg {

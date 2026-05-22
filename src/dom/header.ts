@@ -1,7 +1,7 @@
 import icons from '../icons';
 import type { LevaGUI } from './gui';
 
-export function createHeader(title?: string) {
+export function createHeader(title?: string, drag?: boolean) {
   const header = document.createElement('div');
   header.className = 'leva__header';
   const dropdown = document.createElement('div');
@@ -11,9 +11,13 @@ export function createHeader(title?: string) {
   const grab = document.createElement('div');
   grab.className = 'leva__icons leva__icons--grab-icon';
 
+  if (drag === false) {
+    grab.classList.add('disabled');
+  }
+
   if (title) {
     grab.textContent = title;
-  } else {
+  } else if (drag !== false) {
     grab.innerHTML = icons.grab;
   }
 
@@ -24,8 +28,13 @@ export function createHeader(title?: string) {
   return header;
 }
 
-export function setupHeaderInteractivity(gui: LevaGUI) {
-  const { base, header, contentContainer, searchBar } = gui;
+export function setupHeaderInteractivity(
+  gui: LevaGUI,
+  header: HTMLElement,
+  drag: boolean
+) {
+  const { base, contentContainer, searchBar } = gui;
+
   const dropdownBtn = header.querySelector<HTMLElement>(
     '.leva__icons--dropdown-icon'
   )!;
@@ -41,80 +50,92 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
   let isSearchOpen = false;
   let searchAnim: Animation | undefined;
   let searchDebounceId: number | undefined;
-  grabBtn.style.touchAction = 'none';
-  grabBtn.style.cursor = 'grab';
-  grabBtn.addEventListener('pointerdown', (e: PointerEvent) => {
-    if (!e.isPrimary) return;
-    const rect = base.getBoundingClientRect();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const {
-      left: startLeft,
-      top: startTop,
-      width: elWidth,
-      height: elHeight,
-    } = rect;
+  let startPos = { x: 0, y: 0 };
 
-    let isDragging = true;
-    base.style.position = 'fixed';
-    base.style.left = `${startLeft}px`;
-    base.style.top = `${startTop}px`;
-    base.style.width = `${elWidth}px`;
+  const onMove = (ev: PointerEvent) => {
+    if (!ev.isPrimary) return;
+    base.style.transform = `translate3d(${ev.clientX - startPos.x}px, ${ev.clientY - startPos.y}px, 0)`;
+  };
+
+  const onUp = (upEv: PointerEvent) => {
+    if (!upEv.isPrimary) return;
+    grabBtn.style.cursor = 'grab';
+
+    const rect = base.getBoundingClientRect();
+    const parentRect = base.parentElement?.getBoundingClientRect() || {
+      left: 0,
+      top: 0,
+    };
+    const isFixed = window.getComputedStyle(base).position === 'fixed';
+
+    if (isFixed) {
+      base.style.left = `${rect.left}px`;
+      base.style.top = `${rect.top}px`;
+    } else {
+      base.style.left = `${rect.left - parentRect.left}px`;
+      base.style.top = `${rect.top - parentRect.top}px`;
+    }
+
+    base.style.transform = '';
+    base.style.transition = '';
+    base.style.width = '';
+
+    try {
+      grabBtn.releasePointerCapture(upEv.pointerId);
+    } catch (err) {
+      void err;
+    }
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+  };
+
+  const onDown = (e: PointerEvent) => {
+    if (!e.isPrimary) return;
+
+    const rect = base.getBoundingClientRect();
+    const style = window.getComputedStyle(base);
+    const parentRect = base.parentElement?.getBoundingClientRect() || {
+      left: 0,
+      top: 0,
+    };
+    const isFixed = style.position === 'fixed';
+
+    startPos = { x: e.clientX, y: e.clientY };
+
+    if (isFixed) {
+      base.style.left = `${rect.left}px`;
+      base.style.top = `${rect.top}px`;
+    } else {
+      base.style.left = `${rect.left - parentRect.left}px`;
+      base.style.top = `${rect.top - parentRect.top}px`;
+    }
+
     base.style.right = 'auto';
     base.style.bottom = 'auto';
     base.style.margin = '0';
-    base.style.setProperty('transition', 'none', 'important');
+    base.style.transition = 'none';
+    base.style.transform = 'translate3d(0,0,0)';
 
+    grabBtn.style.cursor = 'grabbing';
     try {
       grabBtn.setPointerCapture(e.pointerId);
     } catch (err) {
       void err;
     }
 
-    let currentDx = 0;
-    let currentDy = 0;
-    let ticking = false;
-
-    const onMove = (ev: PointerEvent) => {
-      if (!ev.isPrimary) return;
-      currentDx = ev.clientX - startX;
-      currentDy = ev.clientY - startY;
-
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          if (!isDragging) return;
-          base.style.transform = `translate3d(${currentDx}px, ${currentDy}px, 0)`;
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    const onUp = (upEv: PointerEvent) => {
-      if (!upEv.isPrimary) return;
-      isDragging = false;
-
-      try {
-        grabBtn.releasePointerCapture(upEv.pointerId);
-      } catch (err) {
-        void err;
-      }
-
-      const dx = upEv.clientX - startX;
-      const dy = upEv.clientY - startY;
-      base.style.transform = '';
-      base.style.transition = '';
-      base.style.left = `${Math.min(Math.max(startLeft + dx, 0), window.innerWidth - elWidth)}px`;
-      base.style.top = `${Math.min(Math.max(startTop + dy, 0), window.innerHeight - elHeight)}px`;
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onUp);
-      grabBtn.style.cursor = 'grab';
-    };
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
-    grabBtn.style.cursor = 'grabbing';
-  });
+  };
+
+  if (drag !== false) {
+    grabBtn.style.touchAction = 'none';
+    grabBtn.style.cursor = 'grab';
+    grabBtn.addEventListener('pointerdown', onDown);
+  }
+
+  // --- SEARCH & DROPDOWN ---
   dropdownBtn.onclick = () => gui.toggle();
+
   searchBtn.onclick = () => {
     const opening = !isSearchOpen;
     const toHeight = opening ? 30 : 0;
@@ -138,6 +159,7 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
       searchBar.style.overflow = '';
     };
   };
+
   searchInput.oninput = () => {
     window.clearTimeout(searchDebounceId);
     searchDebounceId = window.setTimeout(() => {
@@ -162,34 +184,34 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
           r.container.style.display = '';
           let parent = r.container.parentElement;
           while (parent && parent !== gui.content) {
-            if (parent.classList.contains('leva__folder')) {
+            if (parent.classList.contains('leva__folder'))
               parent.style.display = '';
-            }
             parent = parent.parentElement;
           }
         } else {
           r.container.style.display = 'none';
         }
       });
-
       if (gui.isOpen()) gui.adjustHeight(true);
       xBtn.style.visibility = 'visible';
     }, 120);
   };
+
   xBtn.onclick = () => {
     searchInput.value = '';
     searchInput.dispatchEvent(new Event('input'));
     searchInput.focus();
   };
+
   const onKeyDown = (e: KeyboardEvent) => {
     const key = (e.key || '').toLowerCase();
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && key === 'l') {
       e.preventDefault();
-      if (!isSearchOpen) {
-        searchBtn.click();
-      } else {
+      if (isSearchOpen) {
         searchInput.focus();
         searchInput.select();
+      } else {
+        searchBtn.click();
       }
     }
   };
@@ -199,7 +221,9 @@ export function setupHeaderInteractivity(gui: LevaGUI) {
   return () => {
     window.clearTimeout(searchDebounceId);
     document.removeEventListener('keydown', onKeyDown);
-
+    grabBtn.removeEventListener('pointerdown', onDown);
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
     dropdownBtn.onclick = null;
     searchBtn.onclick = null;
     xBtn.onclick = null;

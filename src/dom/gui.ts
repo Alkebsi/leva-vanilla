@@ -8,7 +8,7 @@ import { createBooleanInput } from './controls/boolean';
 import { createSelectInput } from './controls/select';
 import { createColorInput } from './controls/color';
 import { createButtonInput } from './controls/button';
-import type { AnyController } from '../core/types';
+import type { AnyController, LevaOptions } from '../core/types';
 import { createFolder } from './folder';
 import type { Node } from '../schema/nodes';
 
@@ -54,10 +54,7 @@ export type LevaGUI = ReturnType<typeof createGUIRoot> & {
 
 const panelRegistry = new Map<string, LevaGUI>();
 
-export function mountDOM(
-  controls: Controls,
-  options: { title?: string; collapsed?: boolean; panel?: string } = {}
-) {
+export function mountDOM(controls: Controls, options: LevaOptions = {}) {
   const panelId = options.panel || 'default';
   let gui = panelRegistry.get(panelId);
 
@@ -66,10 +63,7 @@ export function mountDOM(
     return gui;
   }
 
-  const elements = createGUIRoot(
-    document.body,
-    options.title || (panelId === 'default' ? 'Leva' : panelId)
-  );
+  const elements = createGUIRoot(options.container || document.body, options);
   const _rowCache: LevaGUI['_rowCache'] = [];
   let _cacheRebuildId: number | undefined;
   let _heightAnim: Animation | undefined;
@@ -95,117 +89,120 @@ export function mountDOM(
     });
   };
 
-  const adjustHeight = (animate = false) => {
-    if (!_isOpen) return;
+  let adjustHeight: (animate?: boolean) => void = () => {};
+  let toggle: (open?: boolean) => void = () => {};
+  if (options?.titleBar !== false) {
+    adjustHeight = (animate = false) => {
+      if (!_isOpen) return;
 
-    const prev = elements.contentContainer.clientHeight || 0;
-    const style = getComputedStyle(elements.contentContainer);
-    if (style.height === 'auto' || style.height === '') {
-      elements.contentContainer.style.height = `${prev}px`;
-    }
-
-    const next = elements.content.scrollHeight;
-    if (prev === next) {
-      elements.contentContainer.style.height = 'auto';
-      return;
-    }
-
-    _heightAnim?.cancel();
-    _heightAnim = elements.contentContainer.animate(
-      [{ height: `${prev}px` }, { height: `${next}px` }],
-      {
-        duration: animate ? 350 : 0,
-        easing: 'ease',
+      const prev = elements.contentContainer.clientHeight || 0;
+      const style = getComputedStyle(elements.contentContainer);
+      if (style.height === 'auto' || style.height === '') {
+        elements.contentContainer.style.height = `${prev}px`;
       }
-    );
 
-    _heightAnim.onfinish = () => {
-      elements.contentContainer.style.height = 'auto';
+      const next = elements.content.scrollHeight;
+      if (prev === next) {
+        elements.contentContainer.style.height = 'auto';
+        return;
+      }
+
       _heightAnim?.cancel();
-    };
-  };
-
-  const toggle = (open?: boolean) => {
-    const wasOpen = _isOpen;
-    const next = open ?? !wasOpen;
-    if (next === wasOpen && open === undefined) return;
-    _isOpen = next;
-
-    const { contentContainer, content, header } = elements;
-    const iconElem = header.querySelector('.leva__icons--dropdown-icon')
-      ?.firstElementChild as HTMLElement;
-
-    const currentHeight = contentContainer.getBoundingClientRect().height;
-    const currentOpacity = window.getComputedStyle(content).opacity;
-    const startAngle = _currentAngle;
-
-    _heightAnim?.cancel();
-    _contentAnim?.cancel();
-    _iconAnim?.cancel();
-
-    const animate = open === undefined;
-    const duration = animate ? 350 : 0;
-    contentContainer.style.overflow = 'hidden';
-
-    _currentAngle = _isOpen ? 0 : -90;
-    if (_isOpen) {
-      const toHeight = content.scrollHeight;
-
-      _heightAnim = contentContainer.animate(
-        [{ height: `${currentHeight}px` }, { height: `${toHeight}px` }],
-        { duration, easing: 'ease', fill: 'forwards' }
-      );
-
-      _contentAnim = content.animate(
-        [{ opacity: currentOpacity }, { opacity: 1 }],
+      _heightAnim = elements.contentContainer.animate(
+        [{ height: `${prev}px` }, { height: `${next}px` }],
         {
-          duration: duration * 0.57,
-          delay: duration * 0.57,
-          easing: 'ease-out',
-          fill: 'both',
+          duration: animate ? 350 : 0,
+          easing: 'ease',
         }
       );
 
-      _iconAnim = iconElem?.animate(
-        [
-          { transform: `rotate(${startAngle}deg)` },
-          { transform: 'rotate(0deg)' },
-        ],
-        { duration, easing: 'ease', fill: 'forwards' }
-      );
-
       _heightAnim.onfinish = () => {
-        contentContainer.style.height = 'auto';
-        contentContainer.style.overflow = '';
+        elements.contentContainer.style.height = 'auto';
         _heightAnim?.cancel();
       };
-    } else {
-      _heightAnim = contentContainer.animate(
-        [{ height: `${currentHeight}px` }, { height: '0px' }],
-        { duration, easing: 'ease', fill: 'forwards' }
-      );
+    };
 
-      _contentAnim = content.animate(
-        [{ opacity: currentOpacity }, { opacity: 0 }],
-        { duration: duration * 0.57, easing: 'ease-in', fill: 'forwards' }
-      );
+    toggle = (open?: boolean) => {
+      const wasOpen = _isOpen;
+      const next = open ?? !wasOpen;
+      if (next === wasOpen && open === undefined) return;
+      _isOpen = next;
 
-      _iconAnim = iconElem?.animate(
-        [
-          { transform: `rotate(${startAngle}deg)` },
-          { transform: 'rotate(-90deg)' },
-        ],
-        { duration, easing: 'ease', fill: 'forwards' }
-      );
+      const { contentContainer, content, header } = elements;
+      const iconElem = header?.querySelector('.leva__icons--dropdown-icon')
+        ?.firstElementChild as HTMLElement;
 
-      _heightAnim.onfinish = () => {
-        contentContainer.style.height = '0px';
-        contentContainer.style.overflow = '';
-        _heightAnim?.cancel();
-      };
-    }
-  };
+      const currentHeight = contentContainer.getBoundingClientRect().height;
+      const currentOpacity = window.getComputedStyle(content).opacity;
+      const startAngle = _currentAngle;
 
+      _heightAnim?.cancel();
+      _contentAnim?.cancel();
+      _iconAnim?.cancel();
+
+      const animate = open === undefined;
+      const duration = animate ? 350 : 0;
+      contentContainer.style.overflow = 'hidden';
+
+      _currentAngle = _isOpen ? 0 : -90;
+      if (_isOpen) {
+        const toHeight = content.scrollHeight;
+
+        _heightAnim = contentContainer.animate(
+          [{ height: `${currentHeight}px` }, { height: `${toHeight}px` }],
+          { duration, easing: 'ease', fill: 'forwards' }
+        );
+
+        _contentAnim = content.animate(
+          [{ opacity: currentOpacity }, { opacity: 1 }],
+          {
+            duration: duration * 0.57,
+            delay: duration * 0.57,
+            easing: 'ease-out',
+            fill: 'both',
+          }
+        );
+
+        _iconAnim = iconElem?.animate(
+          [
+            { transform: `rotate(${startAngle}deg)` },
+            { transform: 'rotate(0deg)' },
+          ],
+          { duration, easing: 'ease', fill: 'forwards' }
+        );
+
+        _heightAnim.onfinish = () => {
+          contentContainer.style.height = 'auto';
+          contentContainer.style.overflow = '';
+          _heightAnim?.cancel();
+        };
+      } else {
+        _heightAnim = contentContainer.animate(
+          [{ height: `${currentHeight}px` }, { height: '0px' }],
+          { duration, easing: 'ease', fill: 'forwards' }
+        );
+
+        _contentAnim = content.animate(
+          [{ opacity: currentOpacity }, { opacity: 0 }],
+          { duration: duration * 0.57, easing: 'ease-in', fill: 'forwards' }
+        );
+
+        _iconAnim = iconElem?.animate(
+          [
+            { transform: `rotate(${startAngle}deg)` },
+            { transform: 'rotate(-90deg)' },
+          ],
+          { duration, easing: 'ease', fill: 'forwards' }
+        );
+
+        _heightAnim.onfinish = () => {
+          contentContainer.style.height = '0px';
+          contentContainer.style.overflow = '';
+          _heightAnim?.cancel();
+        };
+      }
+    };
+  }
   const disposables: Array<() => void> = [];
 
   const dispose = () => {
@@ -235,13 +232,19 @@ export function mountDOM(
 
   panelRegistry.set(panelId, gui);
   renderControls(controls, gui.content);
-  const cleanupInteractivity = setupHeaderInteractivity(gui);
-  if (cleanupInteractivity) disposables.push(cleanupInteractivity);
+  if (options?.titleBar !== false && gui.header) {
+    const cleanupInteractivity = setupHeaderInteractivity(
+      gui,
+      gui.header,
+      options.drag !== false
+    );
+    if (cleanupInteractivity) disposables.push(cleanupInteractivity);
+  }
 
   if (!_isOpen) {
     elements.contentContainer.style.height = '0px';
     elements.content.style.opacity = '0';
-    const icon = elements.header.querySelector('.leva__icons--dropdown-icon')
+    const icon = elements.header?.querySelector('.leva__icons--dropdown-icon')
       ?.firstElementChild as HTMLElement;
     if (icon) icon.style.transform = 'rotate(-90deg)';
   }
@@ -266,15 +269,31 @@ export function mountDOM(
 
 export function createGUIRoot(
   parent: HTMLElement = document.body,
-  title?: string
+  options?: LevaOptions
 ) {
   const root = document.createElement('div');
   root.id = 'leva__root';
 
   const base = document.createElement('div');
-  base.className = 'leva__base leva__base--fill-false leva__base--flat-false';
+  base.className = 'leva__base';
+  base.classList.add(
+    options?.fill ? 'leva__base--fill-true' : 'leva__base--fill-false'
+  );
+  base.classList.add(
+    options?.flat ? 'leva__base--flat-true' : 'leva__base--flat-false'
+  );
 
-  const header = createHeader(title);
+  if (options?.position?.x !== undefined) {
+    base.style.right = `${-options.position.x}px`;
+  }
+  if (options?.position?.y !== undefined) {
+    base.style.top = `${options.position.y}px`;
+  }
+
+  const header =
+    options?.titleBar !== false
+      ? createHeader(options?.title, options?.drag)
+      : null;
   const content = document.createElement('div');
   content.className = 'leva__content';
 
@@ -296,7 +315,8 @@ export function createGUIRoot(
   contentContainer.className = 'leva__content-container';
   contentContainer.append(content);
 
-  base.append(header, searchBar, contentContainer);
+  if (header) base.append(header);
+  base.append(searchBar, contentContainer);
   root.appendChild(base);
   parent.appendChild(root);
 

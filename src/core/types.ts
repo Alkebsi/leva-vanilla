@@ -18,6 +18,35 @@ export type Effect = {
 };
 
 /* ---------------------------------- */
+/* Options                           */
+/* ---------------------------------- */
+
+export type LevaOptions = {
+  collapsed?: boolean;
+  title?: string;
+  panel?: string;
+  gui?: boolean;
+  flat?: boolean;
+  fill?: boolean;
+  drag?: boolean;
+  titleBar?: boolean;
+  position?: {
+    x?: number;
+    y?: number;
+  };
+  container?: HTMLElement;
+};
+
+export type LevaStore = {
+  _tree: Record<string, Node>;
+  _controllers: Record<string, AnyController>;
+  effect: (fn: () => void) => () => void;
+  remove: (path: string) => void;
+  visibility: (path: string, visible: boolean) => void;
+  dispose: () => void;
+};
+
+/* ---------------------------------- */
 /* Base Controller Definitions        */
 /* ---------------------------------- */
 export type BaseController<Type extends string> = {

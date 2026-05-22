@@ -8,17 +8,23 @@
   background-color: var(--leva-colors-elevation1);
 }
 
-.leva__base {
+.leva__base--flat-false {
   border-radius: var(--leva-radii-lg);
   box-shadow: var(--leva-shadows-level1);
 }
 
-.leva__base {
+.leva__base--fill-false {
   position: fixed;
   top: 10px;
   right: 10px;
   z-index: 1000;
   width: var(--leva-sizes-rootWidth);
+}
+
+.leva__base--fill-true {
+  position: relative;
+  z-index: 1000;
+  width: 100%;
 }
 
 .leva__base * {

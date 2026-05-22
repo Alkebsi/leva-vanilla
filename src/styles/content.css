@@ -1,12 +1,15 @@
 .leva__content-container {
   position: relative;
   background-color: var(--leva-colors-elevation2);
-  border-radius: var(--leva-radii-lg);
   overflow: auto;
   max-height: calc(100vh - 20px - var(--leva--titleBarHeight));
   transition: height 300ms;
   scrollbar-width: thin;
   scrollbar-color: var(--leva-colors-elevation3) transparent;
+}
+
+.leva__base--flat-false > .leva__content-container {
+  border-radius: var(--leva-radii-lg);
 }
 
 .leva__content {
