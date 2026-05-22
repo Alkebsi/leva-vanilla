@@ -1,6 +1,6 @@
 {
   "name": "leva-vanilla",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight, framework-agnostic control panel inspired by Leva — built for plain JavaScript.",
   "type": "module",
   "author": "Alkebsi",
