@@ -4,32 +4,52 @@ import { createRow } from './row';
 import {
   parseColor,
   normalizedToHex,
-  normalizedToHex6,
+  rgbToHsv,
+  hsvToRgb,
+  type HSV,
 } from '../../utils/color';
 
-export function createColorInput(key: string, controller: ColorController) {
-  const { container, control, label } = createRow(() => controller.value);
+const clamp = (v: number, min: number, max: number): number =>
+  Math.max(min, Math.min(max, v));
 
+export function createColorInput(
+  key: string,
+  controller: ColorController
+): HTMLElement {
+  const { container, control, label } = createRow(() => controller.value);
   const elementId = generateId(`leva__${key}`);
+
   label.htmlFor = elementId;
   label.textContent = controller.label;
-
   control.classList.add('leva__control--color-parent');
 
-  /* ---------- Picker ---------- */
+  let hsv: HSV = { h: 0, s: 0, v: 0, a: 1 };
+  let isDragging = false;
+  let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  const picker = document.createElement('input');
-  picker.type = 'color';
-  picker.className = 'leva__input leva__input--color-picker';
-  picker.id = generateId(`leva__${key}_picker`);
-
-  /* ---------- Preview / Fake Color ---------- */
+  /* ---------- DOM Setup ---------- */
 
   const preview = document.createElement('div');
   preview.className = 'leva__input leva__input--fake-color';
-  preview.onclick = () => picker.click();
 
-  /* ---------- Text Input ---------- */
+  const popover = document.createElement('div');
+  popover.className = 'leva__color-popover leva__popover--hidden';
+  document.body.appendChild(popover);
+
+  const svSquare = document.createElement('div');
+  svSquare.className = 'leva__color-sv-square';
+  const svHandle = document.createElement('div');
+  svHandle.className = 'leva__color-handle';
+  svSquare.appendChild(svHandle);
+
+  const hueSlider = document.createElement('div');
+  hueSlider.className = 'leva__color-hue-slider';
+  const hueHandle = document.createElement('div');
+  hueHandle.className = 'leva__color-handle';
+  hueHandle.style.top = '50%';
+  hueSlider.appendChild(hueHandle);
+
+  popover.append(svSquare, hueSlider);
 
   const textInput = document.createElement('input');
   textInput.type = 'text';
@@ -42,68 +62,174 @@ export function createColorInput(key: string, controller: ColorController) {
   textContainer.className = 'leva__control leva__control--secondary-color';
   textContainer.appendChild(textInput);
 
-  /* ---------- Assembly ---------- */
+  control.append(preview, textContainer);
 
-  control.append(picker, preview, textContainer);
+  /* ---------- Internal Logic ---------- */
 
-  /* ---------- Visibility Logic ---------- */
-
-  const updateVisibility = (isVisible: boolean) => {
-    container.classList.toggle('visibility-hidden', !isVisible);
+  const updatePopoverPosition = (): void => {
+    if (popover.classList.contains('leva__popover--hidden')) return;
+    const rect = preview.getBoundingClientRect();
+    popover.style.cssText = `
+      position: fixed;
+      top: ${rect.bottom + 5}px;
+      left: ${rect.left}px;
+      z-index: 100000;
+    `;
   };
 
-  const unsubscribeVisibility = controller.onVisibleChange(updateVisibility);
+  const renderPickerVisuals = (currentHsv: HSV): void => {
+    svSquare.style.backgroundColor = `hsl(${currentHsv.h * 360}, 100%, 50%)`;
+    svHandle.style.left = `${currentHsv.s * 100}%`;
+    svHandle.style.top = `${(1 - currentHsv.v) * 100}%`;
+    hueHandle.style.left = `${currentHsv.h * 100}%`;
+  };
 
-  /* ---------- Logic ---------- */
+  const clearHideTimeout = (): void => {
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
+  };
 
-  const syncUI = () => {
-    const value = controller.value;
+  const startHideTimeout = (): void => {
+    if (isDragging) return;
+    clearHideTimeout();
+    hideTimeout = setTimeout(() => {
+      popover.classList.add('leva__popover--hidden');
+      window.removeEventListener('scroll', updatePopoverPosition);
+    }, 1000);
+  };
 
+  const updateFromPointer = (e: PointerEvent, type: 'sv' | 'hue'): void => {
+    const target = type === 'sv' ? svSquare : hueSlider;
+    const rect = target.getBoundingClientRect();
+    const x = clamp((e.clientX - rect.left) / rect.width, 0, 1);
+    const y = clamp((e.clientY - rect.top) / rect.height, 0, 1);
+
+    if (type === 'sv') {
+      hsv.s = x;
+      hsv.v = 1 - y;
+    } else {
+      hsv.h = x;
+    }
+
+    renderPickerVisuals(hsv);
+    const rgba = hsvToRgb(hsv.h, hsv.s, hsv.v, hsv.a);
+    controller.set(normalizedToHex(rgba));
+  };
+
+  const setupDrag = (el: HTMLElement, type: 'sv' | 'hue'): void => {
+    const onMove = (e: PointerEvent): void => updateFromPointer(e, type);
+    const onUp = (): void => {
+      isDragging = false;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      startHideTimeout();
+    };
+
+    el.addEventListener('pointerdown', (e: PointerEvent) => {
+      isDragging = true;
+      clearHideTimeout();
+      el.setPointerCapture(e.pointerId);
+      updateFromPointer(e, type);
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  };
+
+  setupDrag(svSquare, 'sv');
+  setupDrag(hueSlider, 'hue');
+
+  /* ---------- Event Listeners ---------- */
+
+  preview.addEventListener('click', (e: MouseEvent) => {
+    e.stopPropagation();
+    const isHidden = popover.classList.toggle('leva__popover--hidden');
+    if (!isHidden) {
+      updatePopoverPosition();
+      window.addEventListener('scroll', updatePopoverPosition, {
+        passive: true,
+      });
+      clearHideTimeout();
+    } else {
+      window.removeEventListener('scroll', updatePopoverPosition);
+    }
+  });
+
+  const onWindowClick = (e: MouseEvent): void => {
+    if (!popover.contains(e.target as Node) && e.target !== preview) {
+      popover.classList.add('leva__popover--hidden');
+      window.removeEventListener('scroll', updatePopoverPosition);
+    }
+  };
+
+  window.addEventListener('click', onWindowClick);
+  popover.addEventListener('mouseenter', clearHideTimeout);
+  popover.addEventListener('mouseleave', startHideTimeout);
+  preview.addEventListener('mouseenter', clearHideTimeout);
+  preview.addEventListener('mouseleave', startHideTimeout);
+
+  /* ---------- Synchronization ---------- */
+
+  const syncUI = (): void => {
+    const { value } = controller;
     const parsed = parseColor(value);
+
     if (parsed) {
       const hex = normalizedToHex(parsed.rgba);
       if (textInput.value !== hex) textInput.value = hex;
-
-      const hex6 = normalizedToHex6(parsed.rgba);
-      if (picker.value !== hex6) picker.value = hex6;
-
       preview.style.backgroundColor = hex;
+
+      if (!isDragging) {
+        hsv = rgbToHsv(
+          parsed.rgba.r,
+          parsed.rgba.g,
+          parsed.rgba.b,
+          parsed.rgba.a
+        );
+        renderPickerVisuals(hsv);
+      }
     } else {
       const fallback = String(value);
       if (textInput.value !== fallback) textInput.value = fallback;
       preview.style.backgroundColor = fallback;
     }
-
-    if ('visible' in controller) {
-      updateVisibility(controller.visible);
-    }
   };
 
-  const handlePickerInput = () => controller.set(picker.value);
-  picker.addEventListener('input', handlePickerInput);
-
-  const handleTextChange = () => {
+  const handleTextChange = (): void => {
     const parsed = parseColor(textInput.value);
-    if (parsed) {
-      controller.set(textInput.value);
-    } else {
-      syncUI();
-    }
+    if (parsed) controller.set(textInput.value);
+    else syncUI();
   };
+
   textInput.addEventListener('change', handleTextChange);
 
-  const unsubscribeChange = controller.onChange(syncUI);
+  /* ---------- Lifecycle ---------- */
 
-  // Init
+  const unsubscribeChange = controller.onChange(syncUI);
+  const unsubscribeVisibility = controller.onVisibleChange((v: boolean) => {
+    container.classList.toggle('visibility-hidden', !v);
+    if (!v) popover.classList.add('leva__popover--hidden');
+  });
+
   syncUI();
 
-  const cleanup = () => {
-    picker.removeEventListener('input', handlePickerInput);
+  const cleanup = (): void => {
+    window.removeEventListener('click', onWindowClick);
+    window.removeEventListener('scroll', updatePopoverPosition);
     textInput.removeEventListener('change', handleTextChange);
+    popover.removeEventListener('mouseenter', clearHideTimeout);
+    popover.removeEventListener('mouseleave', startHideTimeout);
+    preview.removeEventListener('mouseenter', clearHideTimeout);
+    preview.removeEventListener('mouseleave', startHideTimeout);
+
+    clearHideTimeout();
     unsubscribeChange();
     unsubscribeVisibility();
+    popover.remove();
     container.remove();
   };
+
   controller.onDispose(cleanup);
 
   return container;
