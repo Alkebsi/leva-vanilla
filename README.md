@@ -31,7 +31,7 @@ npm install leva-vanilla
 ## Quick Start
 
 ```js
-import { leva } from './core/leva';
+import { leva } from 'leva-vanilla';
 
 const box = document.createElement('div');
 

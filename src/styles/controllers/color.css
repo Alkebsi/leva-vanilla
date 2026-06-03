@@ -13,20 +13,36 @@
 }
 
 .leva__input--fake-color {
+  position: relative;
   width: 100%;
   height: 100%;
   padding: 0;
   margin: 0;
   border-radius: var(--leva-radii-sm);
   cursor: pointer;
+  overflow: hidden;
 }
 
-.leva__color-popover {
+.leva__input--fake-color::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0px;
+}
+
+.leva__color--popover {
   position: fixed;
   background: black;
   border-radius: var(--leva-radii-xs);
   display: flex;
   flex-direction: column;
+  gap: 12px;
   width: 160px;
   box-shadow: var(--leva-shadows-level1);
 }
@@ -35,7 +51,7 @@
   display: none !important;
 }
 
-.leva__color-sv-square {
+.leva__color--sv-square {
   width: 100%;
   height: 78px;
   position: relative;
@@ -43,11 +59,10 @@
   background-image:
     linear-gradient(to top, #000, transparent),
     linear-gradient(to right, #fff, transparent);
-  border-bottom: 12px solid black;
   cursor: crosshair;
 }
 
-.leva__color-hue-slider {
+.leva__color--hue-slider {
   width: 100%;
   height: 10px;
   position: relative;
@@ -63,9 +78,10 @@
     #f00 100%
   );
   cursor: ew-resize;
+  z-index: 2;
 }
 
-.leva__color-handle {
+.leva__color--handle {
   position: absolute;
   width: 10px;
   height: 10px;
@@ -74,4 +90,36 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+  z-index: 5;
+}
+
+.leva__color--alpha-slider {
+  width: 100%;
+  height: 10px;
+  position: relative;
+  border-radius: var(--leva-radii-xs);
+  cursor: ew-resize;
+  background-size: 10px 10px;
+  background-position:
+    0 0,
+    0 5px,
+    5px -5px,
+    -5px 0px;
+}
+
+.leva__color--alpha-gradient {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.leva__input--fake-color::before,
+.leva__color--alpha-slider {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #eee 25%, transparent 25%),
+    linear-gradient(-45deg, #eee 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eee 75%),
+    linear-gradient(-45deg, transparent 75%, #eee 75%);
 }

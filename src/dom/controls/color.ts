@@ -12,6 +12,22 @@ import {
 const clamp = (v: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, v));
 
+// Helper to check if the initial color format supports alpha
+const detectAlphaSupport = (value: unknown): boolean => {
+  if (typeof value === 'string') {
+    return (
+      value.length === 9 || // #rrggbbaa
+      value.length === 5 || // #rgba
+      value.startsWith('rgba') ||
+      value.startsWith('hsla')
+    );
+  }
+  if (typeof value === 'object' && value !== null) {
+    return 'a' in value; // Catches {r,g,b,a} objects
+  }
+  return false;
+};
+
 export function createColorInput(
   key: string,
   controller: ColorController
@@ -27,29 +43,56 @@ export function createColorInput(
   let isDragging = false;
   let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  // Determine if this specific controller needs an alpha track
+  const hasAlpha = detectAlphaSupport(controller.value);
+
   /* ---------- DOM Setup ---------- */
 
   const preview = document.createElement('div');
   preview.className = 'leva__input leva__input--fake-color';
 
   const popover = document.createElement('div');
-  popover.className = 'leva__color-popover leva__popover--hidden';
+  popover.className = 'leva__color--popover leva__popover--hidden';
   document.body.appendChild(popover);
 
   const svSquare = document.createElement('div');
-  svSquare.className = 'leva__color-sv-square';
+  svSquare.className = 'leva__color--sv-square';
   const svHandle = document.createElement('div');
-  svHandle.className = 'leva__color-handle';
+  svHandle.className = 'leva__color--handle';
   svSquare.appendChild(svHandle);
 
   const hueSlider = document.createElement('div');
-  hueSlider.className = 'leva__color-hue-slider';
+  hueSlider.className = 'leva__color--hue-slider';
   const hueHandle = document.createElement('div');
-  hueHandle.className = 'leva__color-handle';
+  hueHandle.className = 'leva__color--handle';
   hueHandle.style.top = '50%';
   hueSlider.appendChild(hueHandle);
 
-  popover.append(svSquare, hueSlider);
+  // Dynamic Alpha DOM
+  let alphaSlider: HTMLDivElement | null = null;
+  let alphaGradient: HTMLDivElement | null = null;
+  let alphaHandle: HTMLDivElement | null = null;
+
+  if (hasAlpha) {
+    const slidersParent = document.createElement('div');
+    slidersParent.className = 'leva__color--sliders-parent';
+
+    alphaSlider = document.createElement('div');
+    alphaSlider.className = 'leva__color--alpha-slider';
+
+    alphaGradient = document.createElement('div');
+    alphaGradient.className = 'leva__color--alpha-gradient';
+
+    alphaHandle = document.createElement('div');
+    alphaHandle.className = 'leva__color--handle';
+    alphaHandle.style.top = '50%';
+
+    alphaSlider.append(alphaGradient, alphaHandle);
+    slidersParent.append(hueSlider, alphaSlider);
+    popover.append(svSquare, slidersParent);
+  } else {
+    popover.append(svSquare, hueSlider);
+  }
 
   const textInput = document.createElement('input');
   textInput.type = 'text';
@@ -82,6 +125,15 @@ export function createColorInput(
     svHandle.style.left = `${currentHsv.s * 100}%`;
     svHandle.style.top = `${(1 - currentHsv.v) * 100}%`;
     hueHandle.style.left = `${currentHsv.h * 100}%`;
+
+    if (hasAlpha && alphaHandle && alphaGradient) {
+      alphaHandle.style.left = `${currentHsv.a * 100}%`;
+
+      // Calculate solid color hex to render the alpha gradient overlay safely
+      const solidRgb = hsvToRgb(currentHsv.h, currentHsv.s, currentHsv.v, 1);
+      const solidHex = normalizedToHex(solidRgb).slice(0, 7); // Strip any alpha chars
+      alphaGradient.style.backgroundImage = `linear-gradient(to right, transparent, ${solidHex})`;
+    }
   };
 
   const clearHideTimeout = (): void => {
@@ -100,8 +152,12 @@ export function createColorInput(
     }, 1000);
   };
 
-  const updateFromPointer = (e: PointerEvent, type: 'sv' | 'hue'): void => {
-    const target = type === 'sv' ? svSquare : hueSlider;
+  const updateFromPointer = (
+    e: PointerEvent,
+    type: 'sv' | 'hue' | 'alpha'
+  ): void => {
+    const target =
+      type === 'sv' ? svSquare : type === 'hue' ? hueSlider : alphaSlider!;
     const rect = target.getBoundingClientRect();
     const x = clamp((e.clientX - rect.left) / rect.width, 0, 1);
     const y = clamp((e.clientY - rect.top) / rect.height, 0, 1);
@@ -109,8 +165,10 @@ export function createColorInput(
     if (type === 'sv') {
       hsv.s = x;
       hsv.v = 1 - y;
-    } else {
+    } else if (type === 'hue') {
       hsv.h = x;
+    } else if (type === 'alpha') {
+      hsv.a = x;
     }
 
     renderPickerVisuals(hsv);
@@ -118,7 +176,7 @@ export function createColorInput(
     controller.set(normalizedToHex(rgba));
   };
 
-  const setupDrag = (el: HTMLElement, type: 'sv' | 'hue'): void => {
+  const setupDrag = (el: HTMLElement, type: 'sv' | 'hue' | 'alpha'): void => {
     const onMove = (e: PointerEvent): void => updateFromPointer(e, type);
     const onUp = (): void => {
       isDragging = false;
@@ -139,11 +197,13 @@ export function createColorInput(
 
   setupDrag(svSquare, 'sv');
   setupDrag(hueSlider, 'hue');
+  if (hasAlpha && alphaSlider) {
+    setupDrag(alphaSlider, 'alpha');
+  }
 
   /* ---------- Event Listeners ---------- */
 
-  preview.addEventListener('click', (e: MouseEvent) => {
-    e.stopPropagation();
+  preview.addEventListener('click', () => {
     const isHidden = popover.classList.toggle('leva__popover--hidden');
     if (!isHidden) {
       updatePopoverPosition();

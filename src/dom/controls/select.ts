@@ -122,8 +122,7 @@ export function createSelectInput(key: string, controller: SelectController) {
     }
   };
 
-  trigger.onclick = (e) => {
-    e.stopPropagation();
+  trigger.onclick = () => {
     toggle();
   };
 
